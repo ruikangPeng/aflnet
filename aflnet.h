@@ -7,29 +7,29 @@
 #include <poll.h>
 
 typedef struct {
-  int start_byte;                 /* The start byte, negative if unknown. */
-  int end_byte;                   /* The last byte, negative if unknown. */
-  char modifiable;                /* The modifiable flag. */
-  unsigned int *state_sequence;   /* The annotation keeping the state feedback. */
-  unsigned int state_count;       /* Number of states stored in state_sequence. */
-} region_t;
+  int start_byte;                 /* 起始字节，如果未知则为负数         */
+  int end_byte;                   /* 最后一个字节，如果未知则为负数      */
+  char modifiable;                /* 可修改的标志                      */
+  unsigned int *state_sequence;   /* 保存状态反馈的注解(The annotation keeping the state feedback) */
+  unsigned int state_count;       /* 存储在 state_sequence 中的状态数量 */
+} region_t;   //状态链的数据结构
 
 typedef struct {
-  char *mdata; /* Buffer keeping the message data */
-  int msize;   /* Message size */
+  char *mdata; /* 保存消息数据的缓冲区 */
+  int msize;   /* 消息大小            */
 } message_t;
 
 typedef struct {
-  u32 id;                     /* state id */
-  u8 is_covered;              /* has this state been covered */
-  u32 paths;                  /* total number of paths exercising this state */
-  u32 paths_discovered;       /* total number of new paths that have been discovered when this state is targeted/selected */
-  u32 selected_times;         /* total number of times this state has been targeted/selected */
-  u32 fuzzs;                  /* Total number of fuzzs (i.e., inputs generated) */
-  u32 score;                  /* current score of the state */
-  u32 selected_seed_index;    /* the recently selected seed index */
-  void **seeds;               /* keeps all seeds reaching this state -- can be casted to struct queue_entry* */
-  u32 seeds_count;            /* total number of seeds, it must be equal the size of the seeds array */
+  u32 id;                     /* 状态 id                                                   */
+  u8 is_covered;              /* 这个状态是否已被覆盖                                        */
+  u32 paths;                  /* 执行这个状态的路径总数                                      */
+  u32 paths_discovered;       /* 当选择目标状态时，发现的新路径总数                           */
+  u32 selected_times;         /* 选择该状态的总次数                                          */
+  u32 fuzzs;                  /* 模糊测试的总次数（即生成的输入数量）                          */
+  u32 score;                  /* 当前状态的评分                                              */
+  u32 selected_seed_index;    /* 最近选择的种子索引                                          */
+  void **seeds;               /* 保存到达该状态的所有种子(可以转换为 struct queue_entry* 类型) */
+  u32 seeds_count;            /* 种子的总数，它必须等于种子数组的大小                          */
 } state_info_t;
 
 enum {

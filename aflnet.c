@@ -525,7 +525,7 @@ region_t* extract_requests_ftp(unsigned char* buf, unsigned int buf_size, unsign
 
     memcpy(&mem[mem_count], buf + byte_count++, 1);
 
-    //Check if the last two bytes are 0x0D0A
+    //翻译：检查最后两个字节是否为 0x0D0A。
     if ((mem_count > 1) && (memcmp(&mem[mem_count - 1], terminator, 2) == 0)) {
       region_count++;
       regions = (region_t *)ck_realloc(regions, region_count * sizeof(region_t));
@@ -541,7 +541,7 @@ region_t* extract_requests_ftp(unsigned char* buf, unsigned int buf_size, unsign
       mem_count++;
       cur_end++;
 
-      //Check if the last byte has been reached
+      //检查是否已经到达最后一个字节
       if (cur_end == buf_size - 1) {
         region_count++;
         regions = (region_t *)ck_realloc(regions, region_count * sizeof(region_t));
@@ -553,7 +553,7 @@ region_t* extract_requests_ftp(unsigned char* buf, unsigned int buf_size, unsign
       }
 
       if (mem_count == mem_size) {
-        //enlarge the mem buffer
+        //扩大内存缓冲区 mem 的大小
         mem_size = mem_size * 2;
         mem=(char *)ck_realloc(mem, mem_size);
       }
@@ -561,8 +561,8 @@ region_t* extract_requests_ftp(unsigned char* buf, unsigned int buf_size, unsign
   }
   if (mem) ck_free(mem);
 
-  //in case region_count equals zero, it means that the structure of the buffer is broken
-  //hence we create one region for the whole buffer
+  //如果 region_count 等于零，表示缓冲区的结构有问题
+  //因此，我们为整个缓冲区创建一个 region
   if ((region_count == 0) && (buf_size > 0)) {
     regions = (region_t *)ck_realloc(regions, sizeof(region_t));
     regions[0].start_byte = 0;
