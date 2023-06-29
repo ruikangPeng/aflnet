@@ -96,16 +96,16 @@
    really makes no sense to haul them around as function parameters. */
 
 
-EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
-          *out_file,                  /* File to fuzz, if any             */
-          *out_dir,                   /* Working & output directory       */
-          *sync_dir,                  /* Synchronization directory        */
-          *sync_id,                   /* Fuzzer ID                        */
+EXP_ST u8 *in_dir,                    /* 包含测试用例的输入目录             */
+          *out_file,                  /* 要进行模糊测试的文件(如果有的话)   */
+          *out_dir,                   /* 工作和输出目录                    */
+          *sync_dir,                  /* 同步目录                         */
+          *sync_id,                   /* 模糊器ID                         */
           *use_banner,                /* Display banner                   */
-          *in_bitmap,                 /* Input bitmap                     */
-          *doc_path,                  /* Path to documentation dir        */
-          *target_path,               /* Path to target binary            */
-          *orig_cmdline;              /* Original command line            */
+          *in_bitmap,                 /* 输入的位图图像                    */
+          *doc_path,                  /* 指定文档目录的路径                */
+          *target_path,               /* 目标二进制文件路径                */
+          *orig_cmdline;              /* 最初传递给程序的命令行参数         */
 
 EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
 static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
@@ -121,16 +121,16 @@ EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
            score_changed,             /* Scoring for favorites changed?   */
            kill_signal,               /* Signal that killed the child     */
            resuming_fuzz,             /* Resuming an older fuzzing job?   */
-           timeout_given,             /* Specific timeout given?          */
+           timeout_given,             /* 给定了特定的超时时间吗？           */
            not_on_tty,                /* stdout is not a tty              */
            term_too_small,            /* terminal dimensions too small    */
            uses_asan,                 /* Target uses ASAN?                */
            no_forkserver,             /* Disable forkserver?              */
            crash_mode,                /* Crash mode! Yeah!                */
-           in_place_resume,           /* Attempt in-place resume?         */
+           in_place_resume,           /* 尝试原地恢复?                     */
            auto_changed,              /* Auto-generated tokens changed?   */
            no_cpu_meter_red,          /* Feng shui on the status screen   */
-           no_arith,                  /* Skip most arithmetic ops         */
+           no_arith,                  /* 跳过大多数算术操作。               */
            shuffle_queue,             /* Shuffle input queue?             */
            bitmap_changed = 1,        /* Time to update bitmap?           */
            qemu_mode,                 /* Running in QEMU mode?            */
@@ -138,7 +138,7 @@ EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
            run_over10m,               /* Run time over 10 minutes?        */
            persistent_mode,           /* Running in persistent mode?      */
            deferred_mode,             /* Deferred forkserver mode?        */
-           fast_cal;                  /* Try to calibrate faster?         */
+           fast_cal;                  /* 尝试进行更快的校准?(Try to calibrate faster)              */
 
 static s32 out_fd,                    /* Persistent fd for out_file       */
            dev_urandom_fd = -1,       /* Persistent fd for /dev/urandom   */
@@ -201,104 +201,104 @@ EXP_ST u64 total_crashes,             /* Total number of crashes          */
            blocks_eff_total,          /* Blocks subject to effector maps  */
            blocks_eff_select;         /* Blocks selected as fuzzable      */
 
-static u32 subseq_tmouts;             /* Number of timeouts in a row      */
+static u32 subseq_tmouts;             /* 超时次数in a row                  */
 
-static u8 *stage_name = "init",       /* Name of the current fuzz stage   */
+static u8 *stage_name = "init",       /* 当前模糊阶段的名称                 */
           *stage_short,               /* Short stage name                 */
-          *syncing_party;             /* Currently syncing with...        */
+          *syncing_party;             /* 当前正在与...同步                 */
 
-static s32 stage_cur, stage_max;      /* Stage progression                */
-static s32 splicing_with = -1;        /* Splicing with which test case?   */
+static s32 stage_cur, stage_max;      /* 阶段进展progression               */
+static s32 splicing_with = -1;        /* 与哪个测试用例拼接？               */
 
-static u32 master_id, master_max;     /* Master instance job splitting    */
+static u32 master_id, master_max;     /* 主要的实例job分割                 */
 
-static u32 syncing_case;              /* Syncing with case #...           */
+static u32 syncing_case;              /* 与用例 #... 同步中                */
 
-static s32 stage_cur_byte,            /* Byte offset of current stage op  */
-           stage_cur_val;             /* Value used for stage op          */
+static s32 stage_cur_byte,            /* 当前操作阶段字节偏移量             */
+           stage_cur_val;             /* 用于操作阶段的值                  */
 
 static u8  stage_val_type;            /* Value type (STAGE_VAL_*)         */
 
-static u64 stage_finds[32],           /* Patterns found per fuzz stage    */
-           stage_cycles[32];          /* Execs per fuzz stage             */
+static u64 stage_finds[32],           /* 每个模糊阶段找到的Patterns数       */
+           stage_cycles[32];          /* 每个模糊阶段的执行次数             */
 
-static u32 rand_cnt;                  /* Random number counter            */
+static u32 rand_cnt;                  /* 随机数计数器                      */
 
-static u64 total_cal_us,              /* Total calibration time (us)      */
-           total_cal_cycles;          /* Total calibration cycles         */
+static u64 total_cal_us,              /* 校准总时间(us)                    */
+           total_cal_cycles;          /* 校准周期总数                      */
 
-static u64 total_bitmap_size,         /* Total bit count for all bitmaps  */
-           total_bitmap_entries;      /* Number of bitmaps counted        */
+static u64 total_bitmap_size,         /* 所有位图的总位数                  */
+           total_bitmap_entries;      /* 位图数量计数                      */
 
-static s32 cpu_core_count;            /* CPU core count                   */
+static s32 cpu_core_count;            /* CPU核心数                        */
 
 #ifdef HAVE_AFFINITY
 
-static s32 cpu_aff = -1;       	      /* Selected CPU core                */
+  static s32 cpu_aff = -1;       	      /* 选择的CPU核心 */
 
 #endif /* HAVE_AFFINITY */
 
-static FILE* plot_file;               /* Gnuplot output file              */
+static FILE* plot_file;               /* Gnuplot输出文件名 */
 
 struct queue_entry {
 
-  u8* fname;                          /* File name for the test case      */
-  u32 len;                            /* Input length                     */
+  u8* fname;                          /* 测试用例的文件名 */
+  u32 len;                            /* 输入长度        */
 
-  u8  cal_failed,                     /* Calibration failed?              */
-      trim_done,                      /* Trimmed?                         */
-      was_fuzzed,                     /* Had any fuzzing done yet?        */
-      passed_det,                     /* Deterministic stages passed?     */
-      has_new_cov,                    /* Triggers new coverage?           */
-      var_behavior,                   /* Variable behavior?               */
-      favored,                        /* Currently favored?               */
-      fs_redundant;                   /* Marked as redundant in the fs?   */
+  u8  cal_failed,                     /* 校准失败？            */
+      trim_done,                      /* 已修剪？              */
+      was_fuzzed,                     /* 已经进行过fuzzing吗？ */
+      passed_det,                     /* 已通过的确定性阶段？   */
+      has_new_cov,                    /* 触发新覆盖范围？       */
+      var_behavior,                   /* 可变行为？            */
+      favored,                        /* 当前的首选？          */
+      fs_redundant;                   /* 在fs中标记为冗余的？   */
 
-  u32 bitmap_size,                    /* Number of bits set in bitmap     */
-      exec_cksum;                     /* Checksum of the execution trace  */
+  u32 bitmap_size,                    /* 位图中设置的位数 */
+      exec_cksum;                     /* 执行路径的校验和 */
 
-  u64 exec_us,                        /* Execution time (us)              */
-      handicap,                       /* Number of queue cycles behind    */
-      depth;                          /* Path depth                       */
+  u64 exec_us,                        /* 执行次数(us)      */
+      handicap,                       /* 后面队列循环的次数 */
+      depth;                          /* 路径深度          */
 
-  u8* trace_mini;                     /* Trace bytes, if kept             */
-  u32 tc_ref;                         /* Trace bytes ref count            */
+  u8* trace_mini;                     /* 保留的路径字节     */
+  u32 tc_ref;                         /* 路径字节的引用计数 */
 
-  struct queue_entry *next,           /* Next element, if any             */
-                     *next_100;       /* 100 elements ahead               */
+  struct queue_entry *next,           /* 下一个元素(如果有的话) */
+                     *next_100;       /* 前面的100个元素       */
 
-  region_t *regions;                  /* Regions keeping information of message(s) sent to the server under test */
-  u32 region_count;                   /* Total number of regions in this seed */
-  u32 index;                          /* Index of this queue entry in the whole queue */
-  u32 generating_state_id;            /* ID of the start at which the new seed was generated */
-  u8 is_initial_seed;                 /* Is this an initial seed */
-  u32 unique_state_count;             /* Unique number of states traversed by this queue entry */
+  region_t *regions;                  /* 保持发送到被测服务器的消息信息的区域 */
+  u32 region_count;                   /* 此种子的region总数                 */
+  u32 index;                          /* 该队列条目在整个队列中的索引         */
+  u32 generating_state_id;            /* 生成新种子时的起始ID                */
+  u8 is_initial_seed;                 /* 是否是一个初始种子                  */
+  u32 unique_state_count;             /* 由此队列条目遍历的唯一状态数         */
 
 };
 
-static struct queue_entry *queue,     /* Fuzzing queue (linked list)      */
-                          *queue_cur, /* Current offset within the queue  */
-                          *queue_top, /* Top of the list                  */
-                          *q_prev100; /* Previous 100 marker              */
+static struct queue_entry *queue,     /* 模糊测试队列(链表) */
+                          *queue_cur, /* 队列中的当前偏移量 */
+                          *queue_top, /* 列表的顶部        */
+                          *q_prev100; /* 前100个标记       */
 
 static struct queue_entry*
-  top_rated[MAP_SIZE];                /* Top entries for bitmap bytes     */
+  top_rated[MAP_SIZE];                /* 位图字节的前几个条目 */
 
 struct extra_data {
-  u8* data;                           /* Dictionary token data            */
-  u32 len;                            /* Dictionary token length          */
-  u32 hit_cnt;                        /* Use count in the corpus          */
+  u8* data;                           /* 字典令牌数据       */
+  u32 len;                            /* 字典令牌长度       */
+  u32 hit_cnt;                        /* 语料库中的使用计数  */
 };
 
-static struct extra_data* extras;     /* Extra tokens to fuzz with        */
-static u32 extras_cnt;                /* Total number of tokens read      */
+static struct extra_data* extras;     /* 用于模糊测试的额外令牌数 */
+static u32 extras_cnt;                /* 读取的令牌总数          */
 
-static struct extra_data* a_extras;   /* Automatically selected extras    */
-static u32 a_extras_cnt;              /* Total number of tokens available */
+static struct extra_data* a_extras;   /* 自动选择的附加项 */
+static u32 a_extras_cnt;              /* 可用的令牌总数   */
 
 static u8* (*post_handler)(u8* buf, u32* len);
 
-/* Interesting values, as per config.h */
+/* 根据config.h定义的 interesting value */
 
 static s8  interesting_8[]  = { INTERESTING_8 };
 static s16 interesting_16[] = { INTERESTING_8, INTERESTING_16 };
@@ -326,7 +326,7 @@ enum {
   /* 16 */ STAGE_SPLICE
 };
 
-/* Stage value types */
+/* Stage 值类型 */
 
 enum {
   /* 00 */ STAGE_VAL_NONE,
@@ -334,7 +334,7 @@ enum {
   /* 02 */ STAGE_VAL_BE
 };
 
-/* Execution status fault codes */
+/* 执行状态故障代码 */
 
 enum {
   /* 00 */ FAULT_NONE,
@@ -345,25 +345,27 @@ enum {
   /* 05 */ FAULT_NOBITS
 };
 
-char** use_argv;  /* argument to run the target program. In vanilla AFL, this is a local variable in main. */
-/* add these declarations here so we can call these functions earlier */
+char** use_argv;  /* 运行目标程序的参数。在纯AFL中，这是main函数中的一个局部变量。 */
+/* 在这里添加这些声明，以便我们可以更早地调用这些函数。 */
 static u8 run_target(char** argv, u32 timeout);
 static inline u32 UR(u32 limit);
 static inline u8 has_new_bits(u8* virgin_map);
 
-/* AFLNet-specific variables & functions */
+/* AFLNet特定的变量和函数。 */
 
-u32 server_wait_usecs = 10000;
+/*延迟时间，按照AFLNET论文所说由于AFLNET与被测试服务器没有同步机制，通过设置这个延迟时间来防止发包过快导致服务器没有处理完上一个数据包而导致丢包。*/
+u32 server_wait_usecs = 10000; 
 u32 poll_wait_msecs = 1;
 u32 socket_timeout_usecs = 1000;
 u8 net_protocol;
 u8* net_ip;
 u32 net_port;
-char *response_buf = NULL;
-int response_buf_size = 0; //the size of the whole response buffer
-u32 *response_bytes = NULL; //an array keeping accumulated response buffer size
-                            //e.g., response_bytes[i] keeps the response buffer size
-                            //once messages 0->i have been received and processed by the SUT
+
+char *response_buf = NULL; //接收服务器返回响应的缓冲区
+int response_buf_size = 0; //统计整个接收响应的缓冲区长度
+//统计累计响应的buffer的长度，示例说 response_bytes[i]的值为从第0个响应到第i个响应从服务器接收到的响应长度值
+u32 *response_bytes = NULL;
+
 u32 max_annotated_regions = 0;
 u32 target_state_id = 0;
 u32 *state_ids = NULL;
@@ -371,14 +373,15 @@ u32 state_ids_count = 0;
 u32 selected_state_index = 0;
 u32 state_cycles = 0;
 u32 messages_sent = 0;
-EXP_ST u8 session_virgin_bits[MAP_SIZE];     /* Regions yet untouched while the SUT is still running */
-EXP_ST u8 *cleanup_script; /* script to clean up the environment of the SUT -- make fuzzing more deterministic */
-EXP_ST u8 *netns_name; /* network namespace name to run server in */
-char **was_fuzzed_map = NULL; /* A 2D array keeping state-specific was_fuzzed information */
+
+EXP_ST u8 session_virgin_bits[MAP_SIZE];     /* 记录在服务器运行中还未被覆盖的区域。MAP_SIZE等的值定义在config.h中 */
+EXP_ST u8 *cleanup_script; /* 清理SUT环境的脚本 - 使模糊测试更确定性。*/
+EXP_ST u8 *netns_name; /*在网络命名空间中运行服务器的名称。*/
+char **was_fuzzed_map = NULL; /*一个保持特定状态的was_fuzzed信息的二维数组。*/
 u32 fuzzed_map_states = 0;
 u32 fuzzed_map_qentries = 0;
 u32 max_seed_region_count = 0;
-u32 local_port;		/* TCP/UDP port number to use as source */
+u32 local_port;		/* 用作源的TCP/UDP端口号。 */
 
 /* flags */
 u8 use_net = 0;
@@ -402,30 +405,30 @@ klist_t(lms) *kl_messages;
 khash_t(hs32) *khs_ipsm_paths;
 khash_t(hms) *khms_states;
 
-//M2_prev points to the last message of M1 (i.e., prefix)
-//If M1 is empty, M2_prev == NULL
-//M2_next points to the first message of M3 (i.e., suffix)
-//If M3 is empty, M2_next point to the end of the kl_messages linked list
+//M2_prev 指向 M1 的最后一条消息（即前缀）
+//如果 M1 为空,则 M2_prev == NULL
+//M2_next 指向M3的第一条消息（即后缀）。
+//如果 M3 为空，则 M2_next 指向 kl_messages 链表的末尾。
 kliter_t(lms) *M2_prev, *M2_next;
 
-//Function pointers pointing to Protocol-specific functions
+//函数指针指向协议特定的函数
 unsigned int* (*extract_response_codes)(unsigned char* buf, unsigned int buf_size, unsigned int* state_count_ref) = NULL;
 region_t* (*extract_requests)(unsigned char* buf, unsigned int buf_size, unsigned int* region_count_ref) = NULL;
 
-/* Initialize the implemented state machine as a graphviz graph */
+/* 将已实现的状态机初始化为 Graphviz 图 */
 void setup_ipsm()
 {
   ipsm = agopen("g", Agdirected, 0);
 
-  agattr(ipsm, AGNODE, "color", "black"); //Default node colr is black
-  agattr(ipsm, AGEDGE, "color", "black"); //Default edge color is black
+  agattr(ipsm, AGNODE, "color", "black"); //默认节点颜色为黑色
+  agattr(ipsm, AGEDGE, "color", "black"); //默认边的颜色为黑色
 
   khs_ipsm_paths = kh_init(hs32);
 
   khms_states = kh_init(hms);
 }
 
-/* Free memory allocated to state-machine variables */
+/* 释放分配给状态机变量的内存 */
 void destroy_ipsm()
 {
   agclose(ipsm);
@@ -439,7 +442,7 @@ void destroy_ipsm()
   ck_free(state_ids);
 }
 
-/* Get state index in the state IDs list, given a state ID */
+/* 给定一个状态ID,在状态 ID 列表中获取状态索引 */
 u32 get_state_index(u32 state_id) {
   u32 index = 0;
   for (index = 0; index < state_ids_count; index++) {
@@ -448,28 +451,28 @@ u32 get_state_index(u32 state_id) {
   return index;
 }
 
-/* Expand the size of the map when a new seed or a new state has been discovered */
+/* 在发现新的种子或新的状态时，扩展 map 的大小 */
 void expand_was_fuzzed_map(u32 new_states, u32 new_qentries) {
   int i, j;
-  //Realloc the memory
+  //重新分配内存
   was_fuzzed_map = (char **)ck_realloc(was_fuzzed_map, (fuzzed_map_states + new_states) * sizeof(char *));
   for (i = 0; i < fuzzed_map_states + new_states; i++)
     was_fuzzed_map[i] = (char *)ck_realloc(was_fuzzed_map[i], (fuzzed_map_qentries + new_qentries) * sizeof(char));
 
-  //All new cells are marked as -1 -- meaning UNREACHABLE
-  //Keep other cells untouched
+  //所有保持特定状态的was_fuzzed信息的二维数组的每个单元格都标记为-1,意思为不可达(UNREACHABLE)
+  //其他单元格不变
   for (i = 0; i < fuzzed_map_states + new_states; i++)
     for (j = 0; j < fuzzed_map_qentries + new_qentries; j++)
        if ((i >= fuzzed_map_states) || (j >= fuzzed_map_qentries)) was_fuzzed_map[i][j] = -1;
 
-  //Update total number of states (rows) and total number of queue entries (columns) in the was_fuzzed_map
+  //在was_fuzzed_map中更新状态的总数（行数）和队列条目的总数（列数）。
   fuzzed_map_states += new_states;
   fuzzed_map_qentries += new_qentries;
 }
 
-/* Get unique state count, given a state sequence */
+/* 给定一个状态序列，获取唯一状态的计数。 */
 u32 get_unique_state_count(unsigned int *state_sequence, unsigned int state_count) {
-  //A hash set is used so that no state is counted twice
+  //使用哈希集合（hash set）来确保每个状态只被计数一次。
   khash_t(hs32) *khs_state_ids;
   khs_state_ids = kh_init(hs32);
 
@@ -491,9 +494,9 @@ u32 get_unique_state_count(unsigned int *state_sequence, unsigned int state_coun
   return result;
 }
 
-/* Check if a state sequence is interesting (e.g., new state is discovered). Loop is taken into account */
+/* 检查状态序列是否有趣（例如，是否发现了新状态）。循环也被考虑在内。 */
 u8 is_state_sequence_interesting(unsigned int *state_sequence, unsigned int state_count) {
-  //limit the loop count to only 1
+  //将循环计数限制为仅为1。
   u32 *trimmed_state_sequence = NULL;
   u32 i, count = 0;
   for (i=0; i < state_count; i++) {
@@ -503,7 +506,7 @@ u8 is_state_sequence_interesting(unsigned int *state_sequence, unsigned int stat
     trimmed_state_sequence[count - 1] = state_sequence[i];
   }
 
-  //Calculate the hash based on the shortened state sequence
+  //根据缩短的状态序列计算哈希值。
   u32 hashKey = hash32(trimmed_state_sequence, count * sizeof(unsigned int), 0);
   if (trimmed_state_sequence) free(trimmed_state_sequence);
 
@@ -516,7 +519,7 @@ u8 is_state_sequence_interesting(unsigned int *state_sequence, unsigned int stat
   }
 }
 
-/* Update the annotations of regions (i.e., state sequence received from the server) */
+/* 更新region的注释（即从服务器接收到的状态序列）。 */
 void update_region_annotations(struct queue_entry* q)
 {
   u32 i = 0;
@@ -533,20 +536,20 @@ void update_region_annotations(struct queue_entry* q)
   }
 }
 
-/* Choose a region data for region-level mutations */
+/* 选择一个用于region级别变异的区域数据。 */
 u8* choose_source_region(u32 *out_len) {
   u8 *out = NULL;
   *out_len = 0;
   struct queue_entry *q = queue;
 
-  //randomly select a seed
+  //随机选择一个种子。
   u32 index = UR(queued_paths);
   while (index != 0) {
     q = q->next;
     index--;
   }
 
-  //randomly select a region in the selected seed
+  //在所选种子中随机选择一个region
   if (q->region_count) {
     u32 reg_index = UR(q->region_count);
     u32 len = q->regions[reg_index].end_byte - q->regions[reg_index].start_byte + 1;
@@ -554,7 +557,7 @@ u8* choose_source_region(u32 *out_len) {
       out = (u8 *)ck_alloc(len);
       if (out == NULL) PFATAL("Unable allocate a memory region to store a region");
       *out_len = len;
-      //Read region data into memory. */
+      //将region数据读入内存中
       FILE *fp = fopen(q->fname, "rb");
       fseek(fp, q->regions[reg_index].start_byte, SEEK_CUR);
       fread(out, 1, len, fp);
@@ -565,12 +568,12 @@ u8* choose_source_region(u32 *out_len) {
   return out;
 }
 
-/* Update #fuzzs visiting a specific state */
+/* 更新访问特定状态的#fuzzs数量。 */
 void update_fuzzs() {
   unsigned int state_count, i, discard;
   unsigned int *state_sequence = (*extract_response_codes)(response_buf, response_buf_size, &state_count);
 
-  //A hash set is used so that the #paths is not updated more than once for one specific state
+  //使用哈希集合，以确保对于特定状态，#paths（路径数量）不会被更新超过一次。
   khash_t(hs32) *khs_state_ids;
   khint_t k;
   khs_state_ids = kh_init(hs32);
@@ -592,7 +595,7 @@ void update_fuzzs() {
   kh_destroy(hs32, khs_state_ids);
 }
 
-/* Return the index of the "region" containing a given value */
+/* 返回包含给定值的 "region" 的索引。 */
 u32 index_search(u32 *A, u32 n, u32 val) {
   u32 index = 0;
   for(index = 0; index < n; index++) {
@@ -601,7 +604,7 @@ u32 index_search(u32 *A, u32 n, u32 val) {
   return index;
 }
 
-/* Calculate state scores and select the next state */
+/* 计算状态得分并选择下一个状态 */
 u32 update_scores_and_select_next_state(u8 mode) {
   u32 result = 0, i;
 
@@ -613,7 +616,7 @@ u32 update_scores_and_select_next_state(u8 mode) {
 
   khint_t k;
   state_info_t *state;
-  //Update the states' score
+  //更新状态的分数
   for(i = 0; i < state_ids_count; i++) {
     u32 state_id = state_ids[i];
 
@@ -624,7 +627,7 @@ u32 update_scores_and_select_next_state(u8 mode) {
         case FAVOR:
           state->score = ceil(1000 * pow(2, -log10(log10(state->fuzzs + 1) * state->selected_times + 1)) * pow(2, log(state->paths_discovered + 1)));
           break;
-        //other cases are reserved
+        //其他情况保留
       }
 
       if (i == 0) {
@@ -643,22 +646,22 @@ u32 update_scores_and_select_next_state(u8 mode) {
   return result;
 }
 
-/* Select a target state at which we do state-aware fuzzing */
+/* 选择一个目标状态，进行状态感知的模糊测试。 */
 unsigned int choose_target_state(u8 mode) {
   u32 result = 0;
 
   switch (mode) {
-    case RANDOM_SELECTION: //Random state selection
+    case RANDOM_SELECTION: //随机选择一个状态
       selected_state_index = UR(state_ids_count);
       result = state_ids[selected_state_index];
       break;
-    case ROUND_ROBIN: //Round-robin state selection
+    case ROUND_ROBIN: //循环轮流选择一个状态
       result = state_ids[selected_state_index];
       selected_state_index++;
       if (selected_state_index == state_ids_count) selected_state_index = 0;
       break;
     case FAVOR:
-      /* Do ROUND_ROBIN for a few cycles to get enough statistical information*/
+      /* 进行几个循环的轮流选择（ROUND_ROBIN），以获取足够的统计信息。*/
       if (state_cycles < 5) {
         result = state_ids[selected_state_index];
         selected_state_index++;
@@ -678,7 +681,7 @@ unsigned int choose_target_state(u8 mode) {
   return result;
 }
 
-/* Select a seed to exercise the target state */
+/* 选择一个种子来执行目标状态 */
 struct queue_entry *choose_seed(u32 target_state_id, u8 mode)
 {
   khint_t k;
@@ -692,19 +695,19 @@ struct queue_entry *choose_seed(u32 target_state_id, u8 mode)
     if (state->seeds_count == 0) return NULL;
 
     switch (mode) {
-      case RANDOM_SELECTION: //Random seed selection
+      case RANDOM_SELECTION: //随机选择一个种子
         state->selected_seed_index = UR(state->seeds_count);
         result = state->seeds[state->selected_seed_index];
         break;
-      case ROUND_ROBIN: //Round-robin seed selection
+      case ROUND_ROBIN: //循环轮流选择一个种子
         result = state->seeds[state->selected_seed_index];
         state->selected_seed_index++;
         if (state->selected_seed_index == state->seeds_count) state->selected_seed_index = 0;
         break;
       case FAVOR:
         if (state->seeds_count > 10) {
-          //Do seed selection similar to AFL + take into account state-aware information
-          //e.g., was_fuzzed information becomes state-aware
+          //进行类似于AFL+的种子选择，并结合考虑状态感知信息的因素。
+          //例如，将was_fuzzed信息转变为状态感知信息。
           u32 passed_cycles = 0;
           while (passed_cycles < 5) {
             result = state->seeds[state->selected_seed_index];
@@ -713,35 +716,31 @@ struct queue_entry *choose_seed(u32 target_state_id, u8 mode)
               passed_cycles++;
             } else state->selected_seed_index++;
 
-            //Skip this seed with high probability if it is neither an initial seed nor a seed generated while the
-            //current target_state_id was targeted
+            //如果一个种子既不是初始种子，也不是在状态感知期间生成的种子，则有很高的概率跳过该种子。
+            //当前的target_state_id已被定为目标。
             if (result->generating_state_id != target_state_id && !result->is_initial_seed && UR(100) < 90) continue;
 
             u32 target_state_index = get_state_index(target_state_id);
             if (pending_favored) {
-              /* If we have any favored, non-fuzzed new arrivals in the queue,
-                 possibly skip to them at the expense of already-fuzzed or non-favored
-                 cases. */
+              /* 如果我们在队列中有任何受欢迎的、没有模糊测试的新到达测试用例，可能会跳过已经模糊化或非受欢迎测试用例而优先处理它们 */
               if (((was_fuzzed_map[target_state_index][result->index] == 1) || !result->favored) && UR(100) < SKIP_TO_NEW_PROB) continue;
 
-              /* Otherwise, this seed is selected */
+              /* 否则，选择该种子 */
               break;
             } else if (!result->favored && queued_paths > 10) {
-              /* Otherwise, still possibly skip non-favored cases, albeit less often.
-                 The odds of skipping stuff are higher for already-fuzzed inputs and
-                 lower for never-fuzzed entries. */
+              /* 否则，仍有可能偶尔跳过非受欢迎的测试用例，但对于已经模糊化的输入而言，跳过的机会更高，而对于从未模糊化的输入而言，跳过的机会较低。 */
               if (queue_cycle > 1 && (was_fuzzed_map[target_state_index][result->index] == 0)) {
                 if (UR(100) < SKIP_NFAV_NEW_PROB) continue;
               } else {
                 if (UR(100) < SKIP_NFAV_OLD_PROB) continue;
               }
 
-              /* Otherwise, this seed is selected */
+              /* 否则，选择该种子 */
               break;
             }
           }
         } else {
-          //Do Round-robin if seeds_count of the selected state is small
+          //如果所选状态的种子计数较少，则进行轮询
           result = state->seeds[state->selected_seed_index];
           state->selected_seed_index++;
           if (state->selected_seed_index == state->seeds_count) state->selected_seed_index = 0;
@@ -757,7 +756,7 @@ struct queue_entry *choose_seed(u32 target_state_id, u8 mode)
   return result;
 }
 
-/* Update state-aware variables */
+/* 更新状态感知变量 */
 void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
 {
   khint_t k;
@@ -772,14 +771,14 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
   q->unique_state_count = get_unique_state_count(state_sequence, state_count);
 
   if (is_state_sequence_interesting(state_sequence, state_count)) {
-    //Save the current kl_messages to a file which can be used to replay the newly discovered paths on the ipsm
+    //将当前的kl_messages保存到一个文件中，该文件可以用于在ipsm上重放新发现的路径。
     u8 *temp_str = state_sequence_to_string(state_sequence, state_count);
     u8 *fname = alloc_printf("%s/replayable-new-ipsm-paths/id:%s:%s", out_dir, temp_str, dry_run ? basename(q->fname) : "new");
     save_kl_messages_to_file(kl_messages, fname, 1, messages_sent);
     ck_free(temp_str);
     ck_free(fname);
 
-    //Update the IPSM graph
+    //更新 IPSM 图
     if (state_count > 1) {
       unsigned int prevStateID = state_sequence[0];
 
@@ -789,8 +788,8 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
         snprintf(fromState, STATE_STR_LEN, "%d", prevStateID);
         snprintf(toState, STATE_STR_LEN, "%d", curStateID);
 
-        //Check if the prevStateID and curStateID have been added to the state machine as vertices
-        //Check also if the edge prevStateID->curStateID has been added
+        //检查 prevStateID 和 curStateID 是否已添加到状态机作为顶点。
+        //同时检查边 prevStateID->curStateID 是否已添加。
         Agnode_t *from, *to;
 		    Agedge_t *edge;
 		    from = agnode(ipsm, fromState, FALSE);
@@ -800,7 +799,7 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
           if (dry_run) agset(from,"color","blue");
           else agset(from,"color","red");
 
-          //Insert this newly discovered state into the states hashtable
+          //将这个新发现的状态插入到状态哈希表中。
           state_info_t *newState_From = (state_info_t *) ck_alloc (sizeof(state_info_t));
           newState_From->id = prevStateID;
           newState_From->is_covered = 1;
@@ -816,7 +815,7 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
           k = kh_put(hms, khms_states, prevStateID, &discard);
           kh_value(khms_states, k) = newState_From;
 
-          //Insert this into the state_ids array too
+          //也将其插入到state_ids数组中。
           state_ids = (u32 *) ck_realloc(state_ids, (state_ids_count + 1) * sizeof(u32));
           state_ids[state_ids_count++] = prevStateID;
 
@@ -825,12 +824,12 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
 
 		    to = agnode(ipsm, toState, FALSE);
 		    if (!to) {
-          //Add a node to the graph
+          //向图中添加一个节点。
           to = agnode(ipsm, toState, TRUE);
           if (dry_run) agset(to,"color","blue");
           else agset(to,"color","red");
 
-          //Insert this newly discovered state into the states hashtable
+          //将这个新发现的状态插入到状态哈希表中。
           state_info_t *newState_To = (state_info_t *) ck_alloc (sizeof(state_info_t));
           newState_To->id = curStateID;
           newState_To->is_covered = 1;
@@ -846,28 +845,28 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
           k = kh_put(hms, khms_states, curStateID, &discard);
           kh_value(khms_states, k) = newState_To;
 
-          //Insert this into the state_ids array too
+          //也将其插入到state_ids数组中。
           state_ids = (u32 *) ck_realloc(state_ids, (state_ids_count + 1) * sizeof(u32));
           state_ids[state_ids_count++] = curStateID;
 
           if (curStateID != 0) expand_was_fuzzed_map(1, 0);
         }
 
-        //Check if an edge from->to exists
+        //检查是否存在从源节点到目标节点的边。
 		    edge = agedge(ipsm, from, to, NULL, FALSE);
 		    if (!edge) {
-          //Add an edge to the graph
+          //向图中添加一条边。
 			    edge = agedge(ipsm, from, to, "new_edge", TRUE);
           if (dry_run) agset(edge, "color", "blue");
           else agset(edge, "color", "red");
 		    }
 
-        //Update prevStateID
+        //更新 prevStateID
         prevStateID = curStateID;
       }
     }
 
-    //Update the dot file
+    //更新 .dot 文件
     s32 fd;
     u8* tmp;
     tmp = alloc_printf("%s/ipsm.dot", out_dir);
@@ -882,14 +881,14 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
     }
   }
 
-  //Update others no matter the new seed leads to interesting state sequence or not
+  //Update others 无论新的种子是否会导致有趣的状态序列
 
-  //Annotate the regions
+  //给这些region做注释
   update_region_annotations(q);
 
-  //Update the states hashtable to keep the list of seeds which help us to reach a specific state
-  //Iterate over the regions & their annotated state (sub)sequences and update the hashtable accordingly
-  //All seed should "reach" state 0 (initial state) so we add this one to the map first
+  //更新状态哈希表，以保留帮助我们达到特定状态的种子列表
+  //迭代遍历各个地区及其注释状态（子）序列，并相应地更新哈希表。
+  //所有种子应该"到达"状态0（初始状态），所以我们首先将其添加到地图中。
   k = kh_get(hms, khms_states, 0);
   if (k != kh_end(khms_states)) {
     state = kh_val(khms_states, k);
@@ -897,16 +896,16 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
     state->seeds[state->seeds_count] = (void *)q;
     state->seeds_count++;
 
-    was_fuzzed_map[0][q->index] = 0; //Mark it as reachable but not fuzzed
+    was_fuzzed_map[0][q->index] = 0; //将其标记为可到达但未模糊测试
   } else {
     PFATAL("AFLNet - the states hashtable should always contain an entry of the initial state");
   }
 
-  //Now update other states
+  //现在更新其他状态
   for(i = 0; i < q->region_count; i++) {
     unsigned int regional_state_count = q->regions[i].state_count;
     if (regional_state_count > 0) {
-      //reachable_state_id is the last ID in the state_sequence
+      //reachable_state_id 是 state_sequence 中的最后一个ID。
       unsigned int reachable_state_id = q->regions[i].state_sequence[regional_state_count - 1];
 
       k = kh_get(hms, khms_states, reachable_state_id);
@@ -916,11 +915,11 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
         state->seeds[state->seeds_count] = (void *)q;
         state->seeds_count++;
       } else {
-        //XXX. This branch is supposed to be not reachable
-        //However, due to some undeterminism, new state could be seen during regions' annotating process
-        //even though the state was not observed before
-        //To completely fix this, we should fix all causes leading to potential undeterminism
-        //For now, we just add the state into the hashtable
+        //XXX. 这个分支应该是不可达的。
+        //然而，由于某些不确定性，可能会在 region 的注释过程中看到新的状态。
+        //即使之前没有观察到该状态。
+        //为了完全修复这个问题，我们应该修复导致潜在不确定性的所有原因。
+        //暂时我们只需要将该状态添加到哈希表中。
 
         state_info_t *newState = (state_info_t *) ck_alloc (sizeof(state_info_t));
         newState->id = reachable_state_id;
@@ -939,20 +938,20 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
         k = kh_put(hms, khms_states, reachable_state_id, &discard);
         kh_value(khms_states, k) = newState;
 
-        //Insert this into the state_ids array too
+        //还应将其插入到state_ids数组中。
         state_ids = (u32 *) ck_realloc(state_ids, (state_ids_count + 1) * sizeof(u32));
         state_ids[state_ids_count++] = reachable_state_id;
 
         if (reachable_state_id != 0) expand_was_fuzzed_map(1, 0);
       }
 
-      was_fuzzed_map[get_state_index(reachable_state_id)][q->index] = 0; //Mark it as reachable but not fuzzed
+      was_fuzzed_map[get_state_index(reachable_state_id)][q->index] = 0; //将其标记为可到达但未模糊测试
     }
   }
 
-  //Update the number of paths which have traversed a specific state
-  //It can be used for calculating fuzzing energy
-  //A hash set is used so that the #paths is not updated more than once for one specific state
+  //更新已穿过特定状态的路径数量
+  //它可以用于计算模糊测试能量。
+  //使用哈希集合，以确保对于一个特定的状态，路径数量（#paths）只更新一次。
   khash_t(hs32) *khs_state_ids;
   khs_state_ids = kh_init(hs32);
 
@@ -971,7 +970,7 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
   }
   kh_destroy(hs32, khs_state_ids);
 
-  //Update paths_discovered
+  //更新已发现的路径（paths_discovered）。
   if (!dry_run) {
     k = kh_get(hms, khms_states, target_state_id);
     if (k != kh_end(khms_states)) {
@@ -979,11 +978,11 @@ void update_state_aware_variables(struct queue_entry *q, u8 dry_run)
     }
   }
 
-  //Free state sequence
+  //释放状态序列（Free state sequence）
   if (state_sequence) ck_free(state_sequence);
 }
 
-/* Send (mutated) messages in order to the server under test */
+/* 按顺序向被测试的服务器发送（突变的）消息。 */
 int send_over_network()
 {
   int n;
@@ -991,13 +990,13 @@ int send_over_network()
   struct sockaddr_in serv_addr;
   struct sockaddr_in local_serv_addr;
 
-  //Clean up the server if needed
+  //如有需要，清理服务器
   if (cleanup_script) system(cleanup_script);
 
-  //Wait a bit for the server initialization
+  //稍等片刻，等待服务器初始化
   usleep(server_wait_usecs);
 
-  //Clear the response buffer and reset the response buffer size
+  //清除响应缓冲区并重置响应缓冲区大小。
   if (response_buf) {
     ck_free(response_buf);
     response_buf = NULL;
@@ -1009,7 +1008,7 @@ int send_over_network()
     response_bytes = NULL;
   }
 
-  //Create a TCP/UDP socket
+  //创建一个 TCP/UDP 套接字
   int sockfd = -1;
   if (net_protocol == PRO_TCP)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -1020,8 +1019,8 @@ int send_over_network()
     PFATAL("Cannot create a socket");
   }
 
-  //Set timeout for socket data sending/receiving -- otherwise it causes a big delay
-  //if the server is still alive after processing all the requests
+  //设置套接字的发送/接收超时时间，否则会导致严重延迟。
+  //如果服务器在处理完所有请求后仍然保持活动状态。
   struct timeval timeout;
   timeout.tv_sec = 0;
   timeout.tv_usec = socket_timeout_usecs;
@@ -1033,9 +1032,8 @@ int send_over_network()
   serv_addr.sin_port = htons(net_port);
   serv_addr.sin_addr.s_addr = inet_addr(net_ip);
 
-  //This piece of code is only used for targets that send responses to a specific port number
-  //The Kamailio SIP server is an example. After running this code, the intialized sockfd 
-  //will be bound to the given local port
+  //这段代码仅用于向特定端口号发送响应的目标。Kamailio SIP服务器就是一个例子。
+  //运行这段代码后，初始化的sockfd将绑定到指定的本地端口。
   if(local_port > 0) {
     local_serv_addr.sin_family = AF_INET;
     local_serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -1048,8 +1046,8 @@ int send_over_network()
   }
 
   if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    //If it cannot connect to the server under test
-    //try it again as the server initial startup time is varied
+    //如果无法连接到被测试的服务器。
+    //再尝试一次，因为服务器的初始启动时间可能会有所变化。
     for (n=0; n < 1000; n++) {
       if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0) break;
       usleep(1000);
@@ -1060,10 +1058,10 @@ int send_over_network()
     }
   }
 
-  //retrieve early server response if needed
+  //根据需要获取服务器的早期响应。
   if (net_recv(sockfd, timeout, poll_wait_msecs, &response_buf, &response_buf_size)) goto HANDLE_RESPONSES;
 
-  //write the request messages
+  //write请求消息
   kliter_t(lms) *it;
   messages_sent = 0;
 
@@ -1071,25 +1069,25 @@ int send_over_network()
     n = net_send(sockfd, timeout, kl_val(it)->mdata, kl_val(it)->msize);
     messages_sent++;
 
-    //Allocate memory to store new accumulated response buffer size
+    //分配内存以存储新的累积响应缓冲区大小。
     response_bytes = (u32 *) ck_realloc(response_bytes, messages_sent * sizeof(u32));
 
-    //Jump out if something wrong leading to incomplete message sent
+    //如果发生错误导致消息发送不完整，跳出代码执行。
     if (n != kl_val(it)->msize) {
       goto HANDLE_RESPONSES;
     }
 
-    //retrieve server response
+    //获取服务器的响应
     u32 prev_buf_size = response_buf_size;
     if (net_recv(sockfd, timeout, poll_wait_msecs, &response_buf, &response_buf_size)) {
       goto HANDLE_RESPONSES;
     }
 
-    //Update accumulated response buffer size
+    //更新累积响应缓冲区的大小。
     response_bytes[messages_sent - 1] = response_buf_size;
 
-    //set likely_buggy flag if AFLNet does not receive any feedback from the server
-    //it could be a signal of a potentiall server crash, like the case of CVE-2019-7314
+    //如果AFLNet未从服务器收到任何反馈，则设置likely_buggy标志。
+    //这可能是服务器崩溃的潜在信号，就像CVE-2019-7314漏洞的情况一样。
     if (prev_buf_size == response_buf_size) likely_buggy = 1;
     else likely_buggy = 0;
   }
@@ -2196,7 +2194,7 @@ static void cull_queue(void) {
 }
 
 
-/* Configure shared memory and virgin_bits. This is called at startup. */
+/* 配置共享内存和`virgin_bits`。这在启动时被调用。 */
 
 EXP_ST void setup_shm(void) {
 
@@ -2215,10 +2213,10 @@ EXP_ST void setup_shm(void) {
 
   shm_str = alloc_printf("%d", shm_id);
 
-  /* If somebody is asking us to fuzz instrumented binaries in dumb mode,
-     we don't want them to detect instrumentation, since we won't be sending
-     fork server commands. This should be replaced with better auto-detection
-     later on, perhaps? */
+
+  /*  如果有人要求我们以dumb模式(fuzz instrumented binaries in dumb mode)对程序进行模糊测试
+      我们不希望他们检测到插桩，因为我们不会发送fork服务器命令。
+      也许以后可以用更好的自动检测方式来替代这个方法吗？ */
 
   if (!dumb_mode) setenv(SHM_ENV_VAR, shm_str, 1);
 
@@ -2231,7 +2229,7 @@ EXP_ST void setup_shm(void) {
 }
 
 
-/* Load postprocessor, if available. */
+/* 加载后处理器（postprocessor），如果可用的话。 */
 
 static void setup_post(void) {
 
@@ -2249,7 +2247,7 @@ static void setup_post(void) {
   post_handler = dlsym(dh, "afl_postprocess");
   if (!post_handler) FATAL("Symbol 'afl_postprocess' not found.");
 
-  /* Do a quick test. It's better to segfault now than later =) */
+  /* 进行快速测试。最好现在出现段错误（segfault），而不是以后 =) */
 
   post_handler("hello", &tlen);
 
@@ -2258,8 +2256,8 @@ static void setup_post(void) {
 }
 
 
-/* Read all testcases from the input directory, then queue them for testing.
-   Called at startup. */
+/*  从输入目录中读取所有测试用例，然后将它们排入测试队列。
+    在启动时调用。 */
 
 static void read_testcases(void) {
 
@@ -2268,19 +2266,19 @@ static void read_testcases(void) {
   u32 i;
   u8* fn;
 
-  /* AFLNet: set this flag to enable request extractions while adding new seed to the queue */
+  /* AFLNet：设置此标志以在将新种子添加到队列时启用请求提取。 */
   corpus_read_or_sync = 1;
 
-  /* Auto-detect non-in-place resumption attempts. */
+  /* 自动检测非原地恢复尝试。(Auto-detect non-in-place resumption attempts.) */
 
   fn = alloc_printf("%s/queue", in_dir);
+  
   if (!access(fn, F_OK)) in_dir = fn; else ck_free(fn);
 
   ACTF("Scanning '%s'...", in_dir);
 
-  /* We use scandir() + alphasort() rather than readdir() because otherwise,
-     the ordering  of test cases would vary somewhat randomly and would be
-     difficult to control. */
+  /* 我们使用`scandir()`和`alphasort()`而不是`readdir()`
+  因为使用后者会导致测试用例的顺序有些随机，并且很难控制。 */
 
   nl_cnt = scandir(in_dir, &nl, NULL, alphasort);
 
@@ -2319,7 +2317,7 @@ static void read_testcases(void) {
     if (lstat(fn, &st) || access(fn, R_OK))
       PFATAL("Unable to access '%s'", fn);
 
-    /* This also takes care of . and .. */
+    /* 这也处理了`.`和`..`。(This also takes care of . and ..) */
 
     if (!S_ISREG(st.st_mode) || !st.st_size || strstr(fn, "/README.txt")) {
 
@@ -2333,10 +2331,9 @@ static void read_testcases(void) {
       FATAL("Test case '%s' is too big (%s, limit is %s)", fn,
             DMS(st.st_size), DMS(MAX_FILE));
 
-    /* Check for metadata that indicates that deterministic fuzzing
-       is complete for this entry. We don't want to repeat deterministic
-       fuzzing when resuming aborted scans, because it would be pointless
-       and probably very time-consuming. */
+    /*  检查元数据，以判断确定性模糊测试是否针对此条目已经完成。
+        在恢复中止的扫描时，我们不希望重复进行确定性模糊测试，
+        因为这将是无意义的，而且可能非常耗时。 */
 
     if (!access(dfn, F_OK)) passed_det = 1;
     ck_free(dfn);
@@ -2345,10 +2342,10 @@ static void read_testcases(void) {
 
   }
 
-  /* AFLNet: unset this flag to disable request extractions while adding new seed to the queue */
+  /* AFLNET:取消此标志以禁用在将新种子添加到队列时进行请求提取。 */
   corpus_read_or_sync = 0;
 
-  free(nl); /* not tracked */
+  free(nl); /* 未被跟踪 */
 
   if (!queued_paths) {
 
@@ -2522,7 +2519,7 @@ static void load_extras_file(u8* fname, u32* min_len, u32* max_len,
 }
 
 
-/* Read extras from the extras directory and sort them by size. */
+/* 从extras目录中读取额外文件，并按大小进行排序。 */
 
 static void load_extras(u8* dir) {
 
@@ -2531,7 +2528,7 @@ static void load_extras(u8* dir) {
   u32 min_len = MAX_DICT_FILE, max_len = 0, dict_level = 0;
   u8* x;
 
-  /* If the name ends with @, extract level and continue. */
+  /* 如果名称以@结尾，提取级别并继续处理。 */
 
   if ((x = strchr(dir, '@'))) {
 
@@ -2768,7 +2765,7 @@ static void save_auto(void) {
 }
 
 
-/* Load automatically generated extras. */
+/* 加载自动生成的额外文件。 */
 
 static void load_auto(void) {
 
@@ -2790,14 +2787,14 @@ static void load_auto(void) {
 
     }
 
-    /* We read one byte more to cheaply detect tokens that are too
-       long (and skip them). */
+    /* 我们多读取一个字节，以便快速检测过长的标记（并跳过它们）。 */
 
     len = read(fd, tmp, MAX_AUTO_EXTRA + 1);
 
     if (len < 0) PFATAL("Unable to read from '%s'", fn);
 
     if (len >= MIN_AUTO_EXTRA && len <= MAX_AUTO_EXTRA)
+
       maybe_add_auto(tmp, len);
 
     close(fd);
@@ -3800,8 +3797,8 @@ static void link_or_copy(u8* old_path, u8* new_path) {
 
 static void nuke_resume_dir(void);
 
-/* Create hard links for input test cases in the output directory, choosing
-   good names and pivoting accordingly. */
+/*  在输出目录中为输入测试用例创建硬链接，
+    选择合适的名称并相应地进行调整。 */
 
 static void pivot_inputs(void) {
 
@@ -3817,9 +3814,9 @@ static void pivot_inputs(void) {
 
     if (!rsl) rsl = q->fname; else rsl++;
 
-    /* If the original file name conforms to the syntax and the recorded
-       ID matches the one we'd assign, just use the original file name.
-       This is valuable for resuming fuzzing runs. */
+    /*  如果原始文件名符合语法，并且记录的ID与我们要分配的ID相匹配
+        则直接使用原始文件名。
+        这对于恢复模糊测试运行非常有价值。 */
 
 #ifndef SIMPLE_FILES
 #  define CASE_PREFIX "id:"
@@ -4217,13 +4214,13 @@ static u32 find_start_position(void) {
 }
 
 
-/* The same, but for timeouts. The idea is that when resuming sessions without
-   -t given, we don't want to keep auto-scaling the timeout over and over
-   again to prevent it from growing due to random flukes. */
+/*  相同的情况，但适用于超时时间。
+    这个想法是，在没有给出-t参数的情况下恢复会话时，我们不希望一次又一次地
+    自动调整超时时间，以防止由于随机波动而导致超时时间不断增加。 */
 
 static void find_timeout(void) {
 
-  static u8 tmp[4096]; /* Ought to be enough for anybody. */
+  static u8 tmp[4096]; /* 应该足够满足任何人的需求。 */
 
   u8  *fn, *off;
   s32 fd, i;
@@ -4239,7 +4236,7 @@ static void find_timeout(void) {
 
   if (fd < 0) return;
 
-  i = read(fd, tmp, sizeof(tmp) - 1); (void)i; /* Ignore errors */
+  i = read(fd, tmp, sizeof(tmp) - 1); (void)i; /* 忽略错误。*/
   close(fd);
 
   off = strstr(tmp, "exec_timeout      : ");
@@ -8124,7 +8121,7 @@ static void usage(u8* argv0) {
 }
 
 
-/* Prepare output directories and fds. */
+/* 准备输出目录和文件描述符。 */
 
 EXP_ST void setup_dirs_fds(void) {
 
@@ -8571,7 +8568,7 @@ static void check_asan_opts(void) {
 }
 
 
-/* Detect @@ in args. */
+/* 检测参数中的 @@ 符号。 */
 
 EXP_ST void detect_file_args(char** argv) {
 
@@ -8588,17 +8585,17 @@ EXP_ST void detect_file_args(char** argv) {
 
       u8 *aa_subst, *n_arg;
 
-      /* If we don't have a file name chosen yet, use a safe default. */
+      /* 如果我们还没有选择文件名，使用一个安全的默认值。 */
 
       if (!out_file)
         out_file = alloc_printf("%s/.cur_input", out_dir);
 
-      /* Be sure that we're always using fully-qualified paths. */
+      /* 确保我们始终使用完全限定的路径。 */
 
       if (out_file[0] == '/') aa_subst = out_file;
       else aa_subst = alloc_printf("%s/%s", cwd, out_file);
 
-      /* Construct a replacement argv value. */
+      /* 构建一个替换的 argv 值。 */
 
       *aa_loc = 0;
       n_arg = alloc_printf("%s%s%s", argv[i], aa_subst, aa_loc + 2);
@@ -8618,9 +8615,9 @@ EXP_ST void detect_file_args(char** argv) {
 }
 
 
-/* Set up signal handlers. More complicated that needs to be, because libc on
-   Solaris doesn't resume interrupted reads(), sets SA_RESETHAND when you call
-   siginterrupt(), and does other unnecessary things. */
+/*  设置信号处理程序。
+    这个过程比较复杂，因为 Solaris 上的 libc 在调用 siginterrupt() 后不会恢复被中断的 reads()
+    在设置 SA_RESETHAND 时会进行其他不必要的操作。 */
 
 EXP_ST void setup_signal_handlers(void) {
 
@@ -8810,7 +8807,7 @@ static int check_ep_capability(cap_value_t cap, const char *filename) {
 
 #ifndef AFL_LIB
 
-/* Main entry point */
+/* 主入口点 */
 
 int main(int argc, char** argv) {
 
@@ -8829,7 +8826,7 @@ int main(int argc, char** argv) {
 
   doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
 
-  gettimeofday(&tv, &tz);
+  gettimeofday(&tv, &tz); //获取当前的时间值和时区信息，并存储在tv、tz中
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
   while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QN:D:W:w:e:P:KEq:s:RFc:l:")) > 0)
@@ -8955,16 +8952,12 @@ int main(int argc, char** argv) {
 
       case 'B': /* load bitmap */
 
-        /* This is a secret undocumented option! It is useful if you find
-           an interesting test case during a normal fuzzing process, and want
-           to mutate it without rediscovering any of the test cases already
-           found during an earlier run.
+        /* 这是一个秘密未记录的选项！它在正常的模糊测试过程中，如果你发现了一个有趣的测试用例，
+        并且希望在不重新发现之前已经找到的任何测试用例的情况下对其进行变异，那么这个选项就非常有用。
 
-           To use this mode, you need to point -B to the fuzz_bitmap produced
-           by an earlier run for the exact same binary... and that's it.
+        要使用这个模式，你需要将 -B 指向先前运行时为完全相同的二进制文件生成的fuzz_bitmap（位图文件）... 就是这样。
 
-           I only used this once or twice to get variants of a particular
-           file, so I'm not making this an official setting. */
+        我只在某个特定文件的变体上使用过一次或两次，所以我没有将其作为官方设置。 */
 
         if (in_bitmap) FATAL("Multiple -B options not supported");
 
@@ -9014,14 +9007,14 @@ int main(int argc, char** argv) {
         server_wait = 1;
         break;
 
-      case 'W': /* polling timeout determining maximum amount of time waited before concluding that no responses are forthcoming*/
+      case 'W': /* 轮询超时时间，用于确定在得出无法获得响应之前等待的最长时间。*/
         if (socket_timeout) FATAL("Multiple -W options not supported");
 
         if (sscanf(optarg, "%u", &poll_wait_msecs) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -W");
         poll_wait = 1;
         break;
 
-      case 'w': /* receive/send socket timeout determining time waited for each response */
+      case 'w': /* 接收/发送套接字超时时间，确定每次等待响应的时间。 */
         if (socket_timeout) FATAL("Multiple -w options not supported");
 
         if (sscanf(optarg, "%u", &socket_timeout_usecs) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -w");
@@ -9129,7 +9122,7 @@ int main(int argc, char** argv) {
 
   if (optind == argc || !in_dir || !out_dir) usage(argv[0]);
 
-  //AFLNet - Check for required arguments
+  //AFLNet - 检查必要参数
   if (!use_net) FATAL("Please specify network information of the server under test (e.g., tcp://127.0.0.1/8554)");
 
   if (!protocol_selected) FATAL("Please specify the protocol to be tested using the -P option");
@@ -9178,13 +9171,13 @@ int main(int argc, char** argv) {
   if (getenv("AFL_LD_PRELOAD"))
     FATAL("Use AFL_PRELOAD instead of AFL_LD_PRELOAD");
 
-  save_cmdline(argc, argv);
+  save_cmdline(argc, argv); //把参数全部转移到堆上存储
 
-  fix_up_banner(argv[optind]);
+  fix_up_banner(argv[optind]); //UI有关，跟功能关系不大
 
-  check_if_tty();
+  check_if_tty(); //检查程序是否在tty终端运行
 
-  get_core_count();
+  get_core_count(); //获取核心数
 
 #ifdef HAVE_AFFINITY
   bind_to_free_cpu();

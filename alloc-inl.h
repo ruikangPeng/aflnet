@@ -260,7 +260,7 @@ static inline void* DFL_ck_realloc_block(void* orig, u32 size) {
 }
 
 
-/* Create a buffer with a copy of a string. Returns NULL for NULL inputs. */
+/* 创建一个带有字符串副本的缓冲区。对于输入为 NULL 的情况，返回 NULL。 */
 
 static inline u8* DFL_ck_strdup(u8* str) {
 
