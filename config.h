@@ -67,7 +67,7 @@
 #  define MEM_LIMIT         50
 #endif /* ^!WORD_SIZE_64 */
 
-/* Default memory limit when running in QEMU mode (MB): */
+/* 在 QEMU 模式下运行时的默认内存限制（以 MB 为单位）： */
 
 #define MEM_LIMIT_QEMU      200
 

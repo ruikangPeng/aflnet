@@ -115,21 +115,21 @@
 
 #ifdef FANCY_BOXES
 
-#  define SET_G1   "\x1b)0"       /* Set G1 for box drawing    */
-#  define RESET_G1 "\x1b)B"       /* Reset G1 to ASCII         */
-#  define bSTART   "\x0e"         /* Enter G1 drawing mode     */
-#  define bSTOP    "\x0f"         /* Leave G1 drawing mode     */
-#  define bH       "q"            /* Horizontal line           */
-#  define bV       "x"            /* Vertical line             */
-#  define bLT      "l"            /* Left top corner           */
-#  define bRT      "k"            /* Right top corner          */
-#  define bLB      "m"            /* Left bottom corner        */
-#  define bRB      "j"            /* Right bottom corner       */
-#  define bX       "n"            /* Cross                     */
-#  define bVR      "t"            /* Vertical, branch right    */
-#  define bVL      "u"            /* Vertical, branch left     */
-#  define bHT      "v"            /* Horizontal, branch top    */
-#  define bHB      "w"            /* Horizontal, branch bottom */
+#  define SET_G1   "\x1b)0"       /* 将G1字符集设置为用于绘制方框的字符集。    */
+#  define RESET_G1 "\x1b)B"       /* 将G1字符集重置为ASCII字符集。            */
+#  define bSTART   "\x0e"         /* 进入G1绘图模式。                        */
+#  define bSTOP    "\x0f"         /* 退出G1绘图模式。                        */
+#  define bH       "q"            /* 水平线                                 */
+#  define bV       "x"            /* 垂直线                                 */
+#  define bLT      "l"            /* 左上角                                 */
+#  define bRT      "k"            /* 右上角                                 */
+#  define bLB      "m"            /* 左下角                                 */
+#  define bRB      "j"            /* 右下角                                 */
+#  define bX       "n"            /* 十字交叉                               */
+#  define bVR      "t"            /* 垂直线，向右分支                        */
+#  define bVL      "u"            /* 垂直线，向左分支                        */
+#  define bHT      "v"            /* 水平线，向上分支                        */
+#  define bHB      "w"            /* 水平线，向下分支                        */
 
 #else
 
@@ -165,7 +165,7 @@
  * Debug & error macros *
  ************************/
 
-/* Just print stuff to the appropriate stream. */
+/* 只需将内容打印到适当的流中。 */
 
 #ifdef MESSAGES_TO_STDOUT
 #  define SAYF(x...)    printf(x)
@@ -173,35 +173,35 @@
 #  define SAYF(x...)    fprintf(stderr, x)
 #endif /* ^MESSAGES_TO_STDOUT */
 
-/* Show a prefixed warning. */
+/* 显示一个带有前缀的警告。 */
 
 #define WARNF(x...) do { \
     SAYF(cYEL "[!] " cBRI "WARNING: " cRST x); \
     SAYF(cRST "\n"); \
   } while (0)
 
-/* Show a prefixed "doing something" message. */
+/* 显示一个带有前缀的“正在做某事”消息。. */
 
 #define ACTF(x...) do { \
     SAYF(cLBL "[*] " cRST x); \
     SAYF(cRST "\n"); \
   } while (0)
 
-/* Show a prefixed "success" message. */
+/* 显示一个带有前缀的“成功”消息。 */
 
 #define OKF(x...) do { \
     SAYF(cLGN "[+] " cRST x); \
     SAYF(cRST "\n"); \
   } while (0)
 
-/* Show a prefixed fatal error message (not used in afl). */
+/* 显示一个带有前缀的致命错误消息（在afl中未使用）。 */
 
 #define BADF(x...) do { \
     SAYF(cLRD "\n[-] " cRST x); \
     SAYF(cRST "\n"); \
   } while (0)
 
-/* Die with a verbose non-OS fatal error message. */
+/* 以详细的非操作系统致命错误消息终止程序运行. */
 
 #define FATAL(x...) do { \
     SAYF(bSTOP RESET_G1 CURSOR_SHOW cRST cLRD "\n[-] PROGRAM ABORT : " \
@@ -211,7 +211,7 @@
     exit(1); \
   } while (0)
 
-/* Die by calling abort() to provide a core dump. */
+/* 通过调用`abort()`函数使程序崩溃，以提供 core dump。 */
 
 #define ABORT(x...) do { \
     SAYF(bSTOP RESET_G1 CURSOR_SHOW cRST cLRD "\n[-] PROGRAM ABORT : " \
@@ -221,7 +221,7 @@
     abort(); \
   } while (0)
 
-/* Die while also including the output of perror(). */
+/* 在崩溃的同时，还包含 perror() 函数的输出信息。 */
 
 #define PFATAL(x...) do { \
     fflush(stdout); \
@@ -233,15 +233,15 @@
     exit(1); \
   } while (0)
 
-/* Die with FAULT() or PFAULT() depending on the value of res (used to
-   interpret different failure modes for read(), write(), etc). */
+/*  根据`res`的值（用于解释`read()`、`write()`等的不同失败模式）
+    使用`FAULT()`或`PFAULT()`函数来进行崩溃处理。 */
 
 #define RPFATAL(res, x...) do { \
     if (res < 0) PFATAL(x); else FATAL(x); \
   } while (0)
 
-/* Error-checking versions of read() and write() that call RPFATAL() as
-   appropriate. */
+/*  适当调用`RPFATAL()`的具有错误
+    检查功能的`read()`和`write()`版本。 */
 
 #define ck_write(fd, buf, len, fn) do { \
     u32 _len = (len); \

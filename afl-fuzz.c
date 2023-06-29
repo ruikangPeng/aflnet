@@ -133,7 +133,7 @@ EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
            no_arith,                  /* 跳过大多数算术操作。               */
            shuffle_queue,             /* Shuffle input queue?             */
            bitmap_changed = 1,        /* Time to update bitmap?           */
-           qemu_mode,                 /* Running in QEMU mode?            */
+           qemu_mode,                 /* 在QEMU模式下运行？                */
            skip_requested,            /* Skip request, via SIGUSR1        */
            run_over10m,               /* Run time over 10 minutes?        */
            persistent_mode,           /* Running in persistent mode?      */
@@ -193,7 +193,7 @@ EXP_ST u64 total_crashes,             /* Total number of crashes          */
            last_crash_time,           /* Time for most recent crash (ms)  */
            last_hang_time,            /* Time for most recent hang (ms)   */
            last_crash_execs,          /* Exec counter at last crash       */
-           queue_cycle,               /* Queue round counter              */
+           queue_cycle,               /* 队列轮次计数器。                  */
            cycles_wo_finds,           /* Cycles without any new paths     */
            trim_execs,                /* Execs done to trim input files   */
            bytes_trim_in,             /* Bytes coming into the trimmer    */
@@ -389,11 +389,11 @@ u8 poll_wait = 0;
 u8 server_wait = 0;
 u8 socket_timeout = 0;
 u8 protocol_selected = 0;
-u8 terminate_child = 0;
+u8 terminate_child = 0; //如果afl-fuzz后面有-K，terminate_child = 1
 u8 corpus_read_or_sync = 0;
-u8 state_aware_mode = 0;
-u8 region_level_mutation = 0;
-u8 state_selection_algo = ROUND_ROBIN, seed_selection_algo = RANDOM_SELECTION;
+u8 state_aware_mode = 0;  //如果afl-fuzz后面有-E，表示启用状态感知，state_aware_mode = 1 
+u8 region_level_mutation = 0; ////如果afl-fuzz后面有-R，region_level_mutation = 1
+u8 state_selection_algo = ROUND_ROBIN, seed_selection_algo = RANDOM_SELECTION; //afl-fuzz命令-q、-s后面跟的参数值
 u8 false_negative_reduction = 0;
 
 /* Implemented state machine */
@@ -1100,7 +1100,7 @@ HANDLE_RESPONSES:
     response_bytes[messages_sent - 1] = response_buf_size;
   }
 
-  //wait a bit letting the server to complete its remaining task(s)
+  //等待一段时间，让服务器完成其剩余的任务。
   memset(session_virgin_bits, 255, MAP_SIZE);
   while(1) {
     if (has_new_bits(session_virgin_bits) != 2) break;
@@ -1112,7 +1112,7 @@ HANDLE_RESPONSES:
 
   if (terminate_child && (child_pid > 0)) kill(child_pid, SIGTERM);
 
-  //give the server a bit more time to gracefully terminate
+  //给服务器一点额外的时间以优雅地终止。
   while(1) {
     int status = kill(child_pid, 0);
     if ((status != 0) && (errno == ESRCH)) break;
@@ -1122,7 +1122,7 @@ HANDLE_RESPONSES:
 }
 /* End of AFLNet-specific variables & functions */
 
-/* Get unix time in milliseconds */
+/* 获取当前以毫秒为单位的Unix时间 */
 
 static u64 get_cur_time(void) {
 
@@ -2132,11 +2132,11 @@ static void update_bitmap_score(struct queue_entry* q) {
 }
 
 
-/* The second part of the mechanism discussed above is a routine that
-   goes over top_rated[] entries, and then sequentially grabs winners for
-   previously-unseen bytes (temp_v) and marks them as favored, at least
-   until the next run. The favored entries are given more air time during
-   all fuzzing steps. */
+/*  上述讨论中的机制的第二部分是一个程序，
+    它遍历top_rated[]条目，然后顺序地选择之前未
+    见过的字节（temp_v）作为赢家，
+    并将它们标记为优选，至少在下一次运行之前是如此。
+    优选条目在所有模糊测试步骤中获得更多的执行时间。 */
 
 static void cull_queue(void) {
 
@@ -2161,15 +2161,15 @@ static void cull_queue(void) {
     q = q->next;
   }
 
-  /* Let's see if anything in the bitmap isn't captured in temp_v.
-     If yes, and if it has a top_rated[] contender, let's use it. */
+  /*  让我们看看位图中是否有任何内容未在temp_v中捕获。
+      如果是的话，并且它有一个top_rated[]的竞争者，让我们使用它。 */
 
   for (i = 0; i < MAP_SIZE; i++)
     if (top_rated[i] && (temp_v[i >> 3] & (1 << (i & 7)))) {
 
       u32 j = MAP_SIZE >> 3;
 
-      /* Remove all bits belonging to the current entry from temp_v. */
+      /* 从temp_v中移除所有属于当前条目的位。(Remove all bits belonging to the current entry from temp_v.) */
 
       while (j--)
         if (top_rated[i]->trace_mini[j])
@@ -2179,7 +2179,7 @@ static void cull_queue(void) {
       queued_favored++;
 
       //if (!top_rated[i]->was_fuzzed) pending_favored++;
-      /* AFLNet takes into account more information to make this decision */
+      /* AFLNet考虑了更多的信息来进行决策。*/
       if ((top_rated[i]->generating_state_id == target_state_id || top_rated[i]->is_initial_seed) && (was_fuzzed_map[get_state_index(target_state_id)][top_rated[i]->index] == 0)) pending_favored++;
 
     }
@@ -2737,7 +2737,7 @@ sort_a_extras:
 }
 
 
-/* Save automatically generated extras. */
+/* 自动保存生成的额外内容。 */
 
 static void save_auto(void) {
 
@@ -3544,8 +3544,8 @@ static void check_map_coverage(void) {
 }
 
 
-/* Perform dry run of all test cases to confirm that the app is working as
-   expected. This is done only for the initial inputs, and only once. */
+/*  对所有测试用例进行dry运行，以确认应用程序是否按预期工作。
+    这仅针对初始输入进行，并且仅运行一次。 */
 
 static void perform_dry_run(char** argv) {
 
@@ -3575,21 +3575,21 @@ static void perform_dry_run(char** argv) {
 
     close(fd);
 
-    /* AFLNet construct the kl_messages linked list for this queue entry*/
+    /* AFLNet为此队列条目构建kl_messages链表。*/
     kl_messages = construct_kl_messages(q->fname, q->regions, q->region_count);
 
     res = calibrate_case(argv, q, use_mem, 0, 1);
     ck_free(use_mem);
 
-    /* Update state-aware variables (e.g., state machine, regions and their annotations */
+    /* 更新状态感知变量（例如，状态机、区域及其注释） */
     if (state_aware_mode) update_state_aware_variables(q, 1);
 
-    /* save the seed to file for replaying */
+    /* 将种子保存到文件以供重放。 */
     u8 *fn_replay = alloc_printf("%s/replayable-queue/%s", out_dir, basename(q->fname));
     save_kl_messages_to_file(kl_messages, fn_replay, 1, messages_sent);
     ck_free(fn_replay);
 
-    /* AFLNet delete the kl_messages */
+    /*AFLNet 删除 kl_messages。 */
     delete_kl_messages(kl_messages);
 
     if (stop_soon) return;
@@ -3612,9 +3612,9 @@ static void perform_dry_run(char** argv) {
 
         if (timeout_given) {
 
-          /* The -t nn+ syntax in the command line sets timeout_given to '2' and
-             instructs afl-fuzz to tolerate but skip queue entries that time
-             out. */
+          /*  命令行中的"-t nn+"语法将
+              timeout_given设置为'2'，
+              并指示afl-fuzz容忍但跳过超时的队列条目。 */
 
           if (timeout_given > 1) {
             WARNF("Test case results in a timeout (skipping)");
@@ -4180,12 +4180,12 @@ keep_as_crash:
 }
 
 
-/* When resuming, try to find the queue position to start from. This makes sense
-   only when resuming, and when we can find the original fuzzer_stats. */
+/*  在恢复运行时，尝试找到要从哪个队列位置开始的位置。
+    这只有在恢复运行时，且我们能找到原始的 fuzzer_stats 时才有意义。 */
 
 static u32 find_start_position(void) {
 
-  static u8 tmp[4096]; /* Ought to be enough for anybody. */
+  static u8 tmp[4096]; /* 应该对任何人来说足够了。 */
 
   u8  *fn, *off;
   s32 fd, i;
@@ -4251,7 +4251,7 @@ static void find_timeout(void) {
 }
 
 
-/* Update stats file for unattended monitoring. */
+/* 更新状态文件以进行无人值守的监控。 */
 
 static void write_stats_file(double bitmap_cvg, double stability, double eps) {
 
@@ -4272,8 +4272,8 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
 
   if (!f) PFATAL("fdopen() failed");
 
-  /* Keep last values in case we're called from another context
-     where exec/sec stats and such are not readily available. */
+  /*  在其他上下文中调用时，保留最后的值，
+      以防执行/秒统计等不容易获得。 */
 
   if (!bitmap_cvg && !stability && !eps) {
     bitmap_cvg = last_bcvg;
@@ -4296,7 +4296,7 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
              "paths_found       : %u\n"
              "paths_imported    : %u\n"
              "max_depth         : %u\n"
-             "cur_path          : %u\n" /* Must match find_start_position() */
+             "cur_path          : %u\n" /* 必须匹配find_start_position()函数。 */
              "pending_favs      : %u\n"
              "pending_total     : %u\n"
              "variable_paths    : %u\n"
@@ -4308,7 +4308,7 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
              "last_crash        : %llu\n"
              "last_hang         : %llu\n"
              "execs_since_crash : %llu\n"
-             "exec_timeout      : %u\n" /* Must match find_timeout() */
+             "exec_timeout      : %u\n" /* 必须匹配find_timeout()函数。 */
              "afl_banner        : %s\n"
              "afl_version       : " VERSION "\n"
              "target_mode       : %s%s%s%s%s%s%s\n"
@@ -4330,9 +4330,9 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
              orig_cmdline, slowest_exec_ms);
              /* ignore errors */
 
-  /* Get rss value from the children
-     We must have killed the forkserver process and called waitpid
-     before calling getrusage */
+  /*  从子进程获取rss值
+      在调用getrusage之前，我们必须先终止forkserver进程并调用waitpid。 */
+
   if (getrusage(RUSAGE_CHILDREN, &usage)) {
       WARNF("getrusage failed");
   } else if (usage.ru_maxrss == 0) {
@@ -4784,8 +4784,8 @@ dir_cleanup_failed:
 static void check_term_size(void);
 
 
-/* A spiffy retro stats screen! This is called every stats_update_freq
-   execve() calls, plus in several other circumstances. */
+/*  "最后的终端输出".一个漂亮的复古统计信息屏幕！
+    每隔 stats_update_freq 次执行 execve() 调用时，以及在其他几种情况下调用该函数。 */
 
 static void show_stats(void) {
 
@@ -4801,15 +4801,15 @@ static void show_stats(void) {
 
   cur_ms = get_cur_time();
 
-  /* If not enough time has passed since last UI update, bail out. */
+  /* 如果自上次界面更新以来的时间不足够长，提前退出。 */
 
   if (cur_ms - last_ms < 1000 / UI_TARGET_HZ) return;
 
-  /* Check if we're past the 10 minute mark. */
+  /* 检查是否已经过了10分钟的时间点。 */
 
   if (cur_ms - start_time > 10 * 60 * 1000) run_over10m = 1;
 
-  /* Calculate smoothed exec speed stats. */
+  /* 计算平滑的执行速度统计信息。 */
 
   if (!last_execs) {
 
@@ -4820,8 +4820,8 @@ static void show_stats(void) {
     double cur_avg = ((double)(total_execs - last_execs)) * 1000 /
                      (cur_ms - last_ms);
 
-    /* If there is a dramatic (5x+) jump in speed, reset the indicator
-       more quickly. */
+    /*  如果速度有显著（5倍或更多）的跳跃，
+        更快地重置指示器。 */
 
     if (cur_avg * 5 < avg_exec || cur_avg / 5 > avg_exec)
       avg_exec = cur_avg;
@@ -4834,12 +4834,12 @@ static void show_stats(void) {
   last_ms = cur_ms;
   last_execs = total_execs;
 
-  /* Tell the callers when to contact us (as measured in execs). */
+  /* 告诉调用者何时联系我们（以执行次数衡量）。 */
 
   stats_update_freq = avg_exec / (UI_TARGET_HZ * 10);
   if (!stats_update_freq) stats_update_freq = 1;
 
-  /* Do some bitmap stats. */
+  /* 进行一些位图统计。 */
 
   t_bytes = count_non_255_bytes(virgin_bits);
   t_byte_ratio = ((double)t_bytes * 100) / MAP_SIZE;
@@ -4849,7 +4849,7 @@ static void show_stats(void) {
   else
     stab_ratio = 100;
 
-  /* Roughly every minute, update fuzzer stats and save auto tokens. */
+  /* 大约每一分钟更新模糊器统计信息并保存自动生成的令牌。 */
 
   if (cur_ms - last_stats_ms > STATS_UPDATE_SEC * 1000) {
 
@@ -4860,7 +4860,7 @@ static void show_stats(void) {
 
   }
 
-  /* Every now and then, write plot data. */
+  /* 不时地写入绘图数据。 */
 
   if (cur_ms - last_plot_ms > PLOT_UPDATE_SEC * 1000) {
 
@@ -4869,22 +4869,22 @@ static void show_stats(void) {
 
   }
 
-  /* Honor AFL_EXIT_WHEN_DONE and AFL_BENCH_UNTIL_CRASH. */
+  /* 遵守 AFL_EXIT_WHEN_DONE 和 AFL_BENCH_UNTIL_CRASH 的设定。 */
 
   if (!dumb_mode && cycles_wo_finds > 100 && !pending_not_fuzzed &&
       getenv("AFL_EXIT_WHEN_DONE")) stop_soon = 2;
 
   if (total_crashes && getenv("AFL_BENCH_UNTIL_CRASH")) stop_soon = 2;
 
-  /* If we're not on TTY, bail out. */
+  /* 如果不在终端上执行，则提前退出。 */
 
   if (not_on_tty) return;
 
-  /* Compute some mildly useful bitmap stats. */
+  /* 计算一些稍微有用的位图统计信息。 */
 
   t_bits = (MAP_SIZE << 3) - count_bits(virgin_bits);
 
-  /* Now, for the visuals... */
+  /* 现在，为了视觉效果... */
 
   if (clear_screen) {
 
@@ -4906,7 +4906,7 @@ static void show_stats(void) {
 
   }
 
-  /* Let's start by drawing a centered banner. */
+  /* 让我们从绘制一个居中的banner开始。 */
 
   banner_len = (crash_mode ? 24 : 22) + strlen(VERSION) + strlen(use_banner);
   banner_pad = (80 - banner_len) / 2;
@@ -4918,7 +4918,7 @@ static void show_stats(void) {
 
   SAYF("\n%s\n\n", tmp);
 
-  /* "Handy" shortcuts for drawing boxes... */
+  /* 绘制方框的"便捷"快捷方式... */
 
 #define bSTG    bSTART cGRA
 #define bH2     bH bH
@@ -4943,17 +4943,17 @@ static void show_stats(void) {
 
     u64 min_wo_finds = (cur_ms - last_path_time) / 1000 / 60;
 
-    /* First queue cycle: don't stop now! */
+    /* 第一个队列循环：现在不要停下来！ */
     if (queue_cycle == 1 || min_wo_finds < 15) strcpy(tmp, cMGN); else
 
-    /* Subsequent cycles, but we're still making finds. */
+    /* 后续循环，但我们仍在发现新的内容。 */
     if (cycles_wo_finds < 25 || min_wo_finds < 30) strcpy(tmp, cYEL); else
 
-    /* No finds for a long time and no test cases to try. */
+    /* 已经很长时间没有找到新的内容，并且没有测试用例可供尝试。 */
     if (cycles_wo_finds > 100 && !pending_not_fuzzed && min_wo_finds > 120)
       strcpy(tmp, cLGN);
 
-    /* Default: cautiously OK to stop? */
+    /* 默认情况下：谨慎地可以停止了吗？ */
     else strcpy(tmp, cLBL);
 
   }
@@ -4962,8 +4962,8 @@ static void show_stats(void) {
        "  cycles done : %s%-5s  " bSTG bV "\n",
        DTD(cur_ms, start_time), tmp, DI(queue_cycle - 1));
 
-  /* We want to warn people about not seeing new paths after a full cycle,
-     except when resuming fuzzing or running in non-instrumented mode. */
+  /*  我们想警告用户，在完成一个完整的循环后，如果没有看到新的路径，
+      除非是恢复模糊测试或在非插桩模式下运行。 */
 
   if (!dumb_mode && (last_path_time || resuming_fuzz || queue_cycle == 1 ||
       in_bitmap || crash_mode)) {
@@ -4988,8 +4988,8 @@ static void show_stats(void) {
   SAYF(bSTG bV bSTOP "  total paths : " cRST "%-5s  " bSTG bV "\n",
        DI(queued_paths));
 
-  /* Highlight crashes in red if found, denote going over the KEEP_UNIQUE_CRASH
-     limit with a '+' appended to the count. */
+  /*  如果发现崩溃，将其以红色突出显示
+      并在计数后附加一个"+"符号以表示超过KEEP_UNIQUE_CRASH限制。 */
 
   sprintf(tmp, "%s%s", DI(unique_crashes),
           (unique_crashes >= KEEP_UNIQUE_CRASH) ? "+" : "");
@@ -5009,9 +5009,9 @@ static void show_stats(void) {
   SAYF(bVR bH bSTOP cCYA " cycle progress " bSTG bH20 bHB bH bSTOP cCYA
        " map coverage " bSTG bH bHT bH20 bH2 bH bVL "\n");
 
-  /* This gets funny because we want to print several variable-length variables
-     together, but then cram them into a fixed-width field - so we need to
-     put them in a temporary buffer first. */
+  /*  这个情况有趣的地方在于我们想要将几个长度可变的变量一起打印
+      但又希望将它们压缩到一个固定宽度的字段中 
+      因此我们需要先将它们放入一个临时缓冲区中。 */
 
   sprintf(tmp, "%s%s (%0.02f%%)", DI(current_entry),
           queue_cur->favored ? "" : "*",
@@ -5041,7 +5041,7 @@ static void show_stats(void) {
   sprintf(tmp, "%s (%0.02f%%)", DI(queued_favored),
           ((double)queued_favored) * 100 / queued_paths);
 
-  /* Yeah... it's still going on... halp? */
+  /*是的... 这个问题还在继续... 需要帮助吗？ */
 
   SAYF(bV bSTOP "  now trying : " cRST "%-21s " bSTG bV bSTOP
        " favored paths : " cRST "%-22s " bSTG bV "\n", stage_name, tmp);
@@ -5081,7 +5081,7 @@ static void show_stats(void) {
 
   }
 
-  /* Show a warning about slow execution. */
+  /* 展示一个低速执行的警告 */
 
   if (avg_exec < 100) {
 
@@ -5102,7 +5102,7 @@ static void show_stats(void) {
 
   SAYF (bSTG bV bSTOP "  total tmouts : " cRST "%-22s " bSTG bV "\n", tmp);
 
-  /* Aaaalmost there... hold on! */
+  /* 快了快了...稍等一下！ */
 
   SAYF(bVR bH cCYA bSTOP " fuzzing strategy yields " bSTG bH10 bH bHT bH10
        bH5 bHB bH bSTOP cCYA " path geometry " bSTG bH5 bH2 bH bVL "\n");
@@ -5207,7 +5207,7 @@ static void show_stats(void) {
   SAYF(bV bSTOP "        trim : " cRST "%-37s " bSTG bVR bH20 bH2 bH2 bRB "\n"
        bLB bH30 bH20 bH2 bH bRB bSTOP cRST RESET_G1, tmp);
 
-  /* Provide some CPU utilization stats. */
+  /* 提供实时的CPU利用率统计数据 */
 
   if (cpu_core_count) {
 
@@ -5216,12 +5216,12 @@ static void show_stats(void) {
 
     u8* cpu_color = cCYA;
 
-    /* If we could still run one or more processes, use green. */
+    /* 如果我们仍然可以运行一个或多个进程，请使用绿色。 */
 
     if (cpu_core_count > 1 && cur_runnable + 1 <= cpu_core_count)
       cpu_color = cLGN;
 
-    /* If we're clearly oversubscribed, use red. */
+    /* 如果我们明显超出订阅量，请使用红色。 */
 
     if (!no_cpu_meter_red && cur_utilization >= 150) cpu_color = cLRD;
 
@@ -5249,7 +5249,7 @@ static void show_stats(void) {
 
   } else SAYF("\r");
 
-  /* Show debugging stats for AFLNet only when AFLNET_DEBUG environment variable is set */
+  /* 当设置了AFLNET_DEBUG环境变量时，显示AFLNet的调试统计信息。 */
   if (getenv("AFLNET_DEBUG") && (atoi(getenv("AFLNET_DEBUG")) == 1) && state_aware_mode) {
     SAYF(cRST "\n\nMax_seed_region_count: %-4s, current_kl_messages_size: %-4s\n\n", DI(max_seed_region_count), DI(kl_messages->size));
     SAYF(cRST "State IDs and its #selected_times,"cCYA  "#fuzzs,"cLRD "#discovered_paths,"cGRA "#excersing_paths:\n");
@@ -5277,9 +5277,9 @@ static void show_stats(void) {
 }
 
 
-/* Display quick statistics at the end of processing the input directory,
-   plus a bunch of warnings. Some calibration stuff also ended up here,
-   along with several hardcoded constants. Maybe clean up eventually. */
+/*  在处理输入目录结束时，显示快速统计信息
+    以及一些警告。一些校准的内容也包含在这里，
+    还有一些硬编码的常量。也许以后可以进行清理。 */
 
 static void show_init_stats(void) {
 
@@ -5311,7 +5311,7 @@ static void show_init_stats(void) {
     WARNF(cLRD "The target binary is pretty slow! See %s/perf_tips.txt.",
           doc_path);
 
-  /* Let's keep things moving with slow binaries. */
+  /* 对于运行缓慢的二进制文件，让我们保持进展。 */
 
   if (avg_us > 50000) havoc_div = 10;     /* 0-19 execs/sec   */
   else if (avg_us > 20000) havoc_div = 5; /* 20-49 execs/sec  */
@@ -5347,12 +5347,12 @@ static void show_init_stats(void) {
 
   if (!timeout_given) {
 
-    /* Figure out the appropriate timeout. The basic idea is: 5x average or
-       1x max, rounded up to EXEC_TM_ROUND ms and capped at 1 second.
+    /*  计算适当的超时时间。基本思路是：平均时间的5倍或最长时间的1倍，
+        向上取整为 EXEC_TM_ROUND 毫秒，并上限为1秒。
 
-       If the program is slow, the multiplier is lowered to 2x or 3x, because
-       random scheduler jitter is less likely to have any impact, and because
-       our patience is wearing thin =) */
+        如果程序运行缓慢，乘数会降低为2倍或3倍，
+        因为随机调度的抖动不太可能产生任何影响，
+        而且我们的耐心也在逐渐消耗 =) */
 
     if (avg_us > 50000) exec_tmout = avg_us * 2 / 1000;
     else if (avg_us > 10000) exec_tmout = avg_us * 3 / 1000;
@@ -5374,8 +5374,8 @@ static void show_init_stats(void) {
 
   }
 
-  /* In dumb mode, re-running every timing out test case with a generous time
-     limit is very expensive, so let's select a more conservative default. */
+  /*  在 dumb 模式下，重新运行每个超时的测试用例并设置一个较长
+      的时间限制非常昂贵，因此让我们选择一个更保守的默认值。 */
 
   if (dumb_mode && !getenv("AFL_HANG_TMOUT"))
     hang_tmout = MIN(EXEC_TIMEOUT, exec_tmout * 2 + 100);
@@ -5817,9 +5817,9 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le) {
 }
 
 
-/* Take the current entry from the queue, fuzz it for a while. This
-   function is a tad too long... returns 0 if fuzzed successfully, 1 if
-   skipped or bailed out. */
+/*  从队列中获取当前条目，进行一段时间的模糊测试。
+    这个函数稍微有点长... 如果成功进行了模糊测试，则返回0；
+    如果跳过或提前退出，则返回1。 */
 
 static u8 fuzz_one(char** argv) {
 
@@ -7825,9 +7825,9 @@ static void handle_timeout(int sig) {
 }
 
 
-/* Do a PATH search and find target binary to see that it exists and
-   isn't a shell script - a common and painful mistake. We also check for
-   a valid ELF header and for evidence of AFL instrumentation. */
+/*  进行 PATH 搜索，找到目标二进制文件，
+    以确保其存在且不是一个 shell 脚本 - 这是一个常见且令人痛苦的错误。
+    我们还检查是否存在有效的 ELF 头以及是否存在 AFL 插桩的证据。 */
 
 EXP_ST void check_binary(u8* fname) {
 
@@ -8066,7 +8066,7 @@ static void check_term_size(void) {
 
 
 
-/* Display usage hints. */
+/* 显示使用提示。 */
 
 static void usage(u8* argv0) {
 
@@ -8262,7 +8262,7 @@ EXP_ST void setup_dirs_fds(void) {
 }
 
 
-/* Setup the output file for fuzzed data, if not using -f. */
+/* 如果没有使用 `-f` 参数，则设置模糊数据的输出文件。 */
 
 EXP_ST void setup_stdio_file(void) {
 
@@ -8279,7 +8279,7 @@ EXP_ST void setup_stdio_file(void) {
 }
 
 
-/* Make sure that core dumps don't go to a program. */
+/* 确保核心转储（core dumps）不会发送给一个程序。 */
 
 static void check_crash_handling(void) {
 
@@ -8488,7 +8488,7 @@ static void get_core_count(void) {
 }
 
 
-/* Validate and fix up out_dir and sync_dir when using -S. */
+/* 在使用 -S 选项时，验证并修正 out_dir 和 sync_dir。 */
 
 static void fix_up_sync(void) {
 
@@ -8530,14 +8530,14 @@ static void fix_up_sync(void) {
 }
 
 
-/* Handle screen resize (SIGWINCH). */
+/* 处理屏幕调整大小（SIGWINCH）。 */
 
 static void handle_resize(int sig) {
   clear_screen = 1;
 }
 
 
-/* Check ASAN options. */
+/* 检查 ASAN 选项。 */
 
 static void check_asan_opts(void) {
   u8* x = getenv("ASAN_OPTIONS");
@@ -8610,7 +8610,7 @@ EXP_ST void detect_file_args(char** argv) {
 
   }
 
-  free(cwd); /* not tracked */
+  free(cwd); /* 未被跟踪 */
 
 }
 
@@ -8660,14 +8660,14 @@ EXP_ST void setup_signal_handlers(void) {
 }
 
 
-/* Rewrite argv for QEMU. */
+/* 为QEMU重写argv参数。 */
 
 static char** get_qemu_argv(u8* own_loc, char** argv, int argc) {
 
   char** new_argv = ck_alloc(sizeof(char*) * (argc + 4));
   u8 *tmp, *cp, *rsl, *own_copy;
 
-  /* Workaround for a QEMU stability glitch. */
+  /* 针对QEMU稳定性故障的解决方法。 */
 
   setenv("QEMU_LOG", "nochain", 1);
 
@@ -8676,7 +8676,7 @@ static char** get_qemu_argv(u8* own_loc, char** argv, int argc) {
   new_argv[2] = target_path;
   new_argv[1] = "--";
 
-  /* Now we need to actually find the QEMU binary to put in argv[0]. */
+  /* 现在我们需要实际找到QEMU二进制文件以放入argv[0]中。 */
 
   tmp = getenv("AFL_PATH");
 
@@ -8760,7 +8760,7 @@ static void save_cmdline(u32 argc, char** argv) {
 
 }
 
-/* Check that afl-fuzz (file/process) has some effective and permitted capability */
+/* 检查`afl-fuzz`（文件/进程）是否具有一些有效且被允许的能力。 */
 
 static int check_ep_capability(cap_value_t cap, const char *filename) {
   cap_t file_cap, proc_cap;
@@ -8833,7 +8833,7 @@ int main(int argc, char** argv) {
 
     switch (opt) {
 
-      case 'i': /* input dir */
+      case 'i': /* 输入目录 */
 
         if (in_dir) FATAL("Multiple -i options not supported");
         in_dir = optarg;
@@ -8842,13 +8842,13 @@ int main(int argc, char** argv) {
 
         break;
 
-      case 'o': /* output dir */
+      case 'o': /* 输出目录 */
 
         if (out_dir) FATAL("Multiple -o options not supported");
         out_dir = optarg;
         break;
 
-      case 'M': { /* master sync ID */
+      case 'M': { /* 主同步ID */
 
           u8* c;
 
@@ -8877,7 +8877,7 @@ int main(int argc, char** argv) {
         sync_id = ck_strdup(optarg);
         break;
 
-      case 'f': /* target file */
+      case 'f': /* 目标文件 */
 
         if (out_file) FATAL("Multiple -f options not supported");
         out_file = optarg;
@@ -8906,7 +8906,7 @@ int main(int argc, char** argv) {
 
       }
 
-      case 'm': { /* mem limit */
+      case 'm': { /* 内存限制 */
 
           u8 suffix = 'M';
 
@@ -8943,7 +8943,7 @@ int main(int argc, char** argv) {
 
         break;
 
-      case 'd': /* skip deterministic */
+      case 'd': /* 跳过确定性阶段 */
 
         if (skip_deterministic) FATAL("Multiple -d options not supported");
         skip_deterministic = 1;
@@ -9081,11 +9081,11 @@ int main(int argc, char** argv) {
         state_aware_mode = 1;
         break;
 
-      case 'q': /* state selection option */
+      case 'q': /* 状态选择选项 */
         if (sscanf(optarg, "%hhu", &state_selection_algo) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -q");
         break;
 
-      case 's': /* seed selection option */
+      case 's': /* 种子选择选项 */
         if (sscanf(optarg, "%hhu", &seed_selection_algo) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -s");
         break;
 
@@ -9099,15 +9099,15 @@ int main(int argc, char** argv) {
         false_negative_reduction = 1;
         break;
 
-      case 'c': /* cleanup script */
+      case 'c': /* 脚本清理 */
 
         if (cleanup_script) FATAL("Multiple -c options not supported");
         cleanup_script = optarg;
         break;
 
-      case 'l': /* local port to connect from */
-        //This option is only used for targets that send responses to a specific port number
-        //The Kamailio SIP server is an example
+      case 'l': /* 连接本地端口 */
+        //该选项仅适用于将响应发送到特定端口号的目标。
+        //Kamailio SIP服务器就是一个例子。
 
         if (local_port) FATAL("Multiple -l options not supported");
         local_port = atoi(optarg);
@@ -9183,35 +9183,35 @@ int main(int argc, char** argv) {
   bind_to_free_cpu();
 #endif /* HAVE_AFFINITY */
 
-  check_crash_handling();
-  check_cpu_governor();
+  check_crash_handling(); //确保核心转储（core dumps）不会发送给一个程序。
+  check_cpu_governor();   //检查 CPU 调度器（governor）。
 
-  setup_post();
-  setup_shm();
-  init_count_class16();
+  setup_post();           //加载后处理器（postprocessor），如果可用的话。
+  setup_shm();            //配置共享内存和`virgin_bits`。这在启动时被调用。
+  init_count_class16();   //为后续的处理过程建立一个查找表
 
-  setup_ipsm();
+  setup_ipsm();           //将已实现的状态机初始化为 Graphviz 图
 
-  setup_dirs_fds();
-  read_testcases();
-  load_auto();
+  setup_dirs_fds();       //准备输出目录和文件描述符。
+  read_testcases();       //从输入目录中读取所有测试用例，然后将它们排入测试队列。在启动时调用。
+  load_auto();            //加载自动生成的额外文件。
 
-  pivot_inputs();
+  pivot_inputs();         //在输出目录中为输入测试用例创建硬链接，选择合适的名称并相应地进行调整。
 
-  if (extras_dir) load_extras(extras_dir);
+  if (extras_dir) load_extras(extras_dir);//从extras目录中读取额外文件，并按大小进行排序。
 
   if (!timeout_given) find_timeout();
 
-  detect_file_args(argv + optind + 1);
+  detect_file_args(argv + optind + 1);    //检测参数中的 @@ 符号。
 
-  if (!out_file) setup_stdio_file();
+  if (!out_file) setup_stdio_file();      //如果没有使用 `-f` 参数，则设置模糊数据的输出文件。
 
   check_binary(argv[optind]);
 
-  start_time = get_cur_time();
+  start_time = get_cur_time();            //获取当前以毫秒为单位的Unix时间
 
   if (qemu_mode)
-    use_argv = get_qemu_argv(argv[0], argv + optind, argc - optind);
+    use_argv = get_qemu_argv(argv[0], argv + optind, argc - optind);//为QEMU重写argv参数
   else
     use_argv = argv + optind;
 
@@ -9223,10 +9223,10 @@ int main(int argc, char** argv) {
 
   seek_to = find_start_position();
 
-  write_stats_file(0, 0, 0);
-  save_auto();
+  write_stats_file(0, 0, 0);  //更新状态文件以进行无人值守的监控。
+  save_auto();                //自动保存生成的额外内容
 
-  if (stop_soon) goto stop_fuzzing;
+  if (stop_soon) goto stop_fuzzing;//如果按下 Ctrl+c，停止fuzzing
 
   /* Woop woop woop */
 
@@ -9249,10 +9249,10 @@ int main(int argc, char** argv) {
       while(!selected_seed || selected_seed->region_count == 0) {
         target_state_id = choose_target_state(state_selection_algo);
 
-        /* Update favorites based on the selected state */
+        /* 根据所选状态更新收藏夹。 */
         cull_queue();
 
-        /* Update number of times a state has been selected for targeted fuzzing */
+        /* 更新特定模糊测试状态被选择的次数。 */
         khint_t k = kh_get(hms, khms_states, target_state_id);
         if (k != kh_end(khms_states)) {
           kh_val(khms_states, k)->selected_times++;
@@ -9261,7 +9261,7 @@ int main(int argc, char** argv) {
         selected_seed = choose_seed(target_state_id, seed_selection_algo);
       }
 
-      /* Seek to the selected seed */
+      /* 定位到选择的种子 */
       if (selected_seed) {
         if (!queue_cur) {
             current_entry     = 0;
@@ -9315,15 +9315,15 @@ int main(int argc, char** argv) {
           queue_cur = queue_cur->next;
         }
 
-        show_stats();
+        show_stats(); //展示最后实时fuzzing的输出信息
 
         if (not_on_tty) {
           ACTF("Entering queue cycle %llu.", queue_cycle);
           fflush(stdout);
         }
 
-        /* If we had a full queue cycle with no new finds, try
-           recombination strategies next. */
+        /*  如果我们完成了一整个队列循环但没有发现新的结果
+            那么接下来尝试使用重组策略。 */
 
         if (queued_paths == prev_queued) {
 
@@ -9359,13 +9359,13 @@ int main(int argc, char** argv) {
 
   if (queue_cur) show_stats();
 
-  /* If we stopped programmatically, we kill the forkserver and the current runner.
-     If we stopped manually, this is done by the signal handler. */
+  /* 如果我们以编程方式停止了程序运行，我们将终止forkserver和当前的运行器。
+     如果我们手动停止，这是由信号处理程序完成的。 */
   if (stop_soon == 2) {
       if (child_pid > 0) kill(child_pid, SIGKILL);
       if (forksrv_pid > 0) kill(forksrv_pid, SIGKILL);
   }
-  /* Now that we've killed the forkserver, we wait for it to be able to get rusage stats. */
+  /* 既然我们已经终止了forkserver，我们等待它能够获取rusage统计信息。 */
   if (waitpid(forksrv_pid, NULL, 0) <= 0) {
     WARNF("error waitpid\n");
   }
@@ -9379,7 +9379,7 @@ stop_fuzzing:
   SAYF(CURSOR_SHOW cLRD "\n\n+++ Testing aborted %s +++\n" cRST,
        stop_soon == 2 ? "programmatically" : "by user");
 
-  /* Running for more than 30 minutes but still doing first cycle? */
+  /* 已经运行了30分钟以上，但仍然处于第一轮循环？ */
 
   if (queue_cycle == 1 && get_cur_time() - start_time > 30 * 60 * 1000) {
 

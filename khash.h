@@ -474,7 +474,7 @@ static kh_inline khint_t __ac_Wang_hash(khint_t key)
 #define kh_put(name, h, k, r) kh_put_##name(h, k, r)
 
 /*! @function
-  @abstract     Retrieve a key from the hash table.
+  @abstract     从哈希表中检索一个key。
   @param  name  Name of the hash table [symbol]
   @param  h     Pointer to the hash table [khash_t(name)*]
   @param  k     Key [type of keys]

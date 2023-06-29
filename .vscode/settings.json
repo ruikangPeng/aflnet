@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "alloc-inl.h": "c",
+        "debug.h": "c",
+        "aflnet.h": "c",
+        "stat.h": "c",
+        "types.h": "c",
+        "time.h": "c",
+        "wait.h": "c",
+        "fcntl.h": "c",
+        "dlfcn.h": "c",
+        "string.h": "c",
+        "unistd.h": "c",
+        "errno.h": "c",
+        "signal.h": "c"
+    }
+}
