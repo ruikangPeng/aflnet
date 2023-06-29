@@ -1120,10 +1120,10 @@ HANDLE_RESPONSES:
 
   return 0;
 }
+
 /* End of AFLNet-specific variables & functions */
 
 /* 获取当前以毫秒为单位的Unix时间 */
-
 static u64 get_cur_time(void) {
 
   struct timeval tv;
@@ -1136,8 +1136,7 @@ static u64 get_cur_time(void) {
 }
 
 
-/* Get unix time in microseconds */
-
+/* 获取当前的 Unix 时间(以微秒为单位) */
 static u64 get_cur_time_us(void) {
 
   struct timeval tv;
@@ -1152,7 +1151,6 @@ static u64 get_cur_time_us(void) {
 
 /*  生成一个随机数（从 0 到 limit - 1）。
     这可能存在轻微的偏差。 */
-
 static inline u32 UR(u32 limit) {
 
   if (unlikely(!rand_cnt--)) {
@@ -1172,7 +1170,6 @@ static inline u32 UR(u32 limit) {
 
 
 /* Shuffle an array of pointers. Might be slightly biased. */
-
 static void shuffle_ptrs(void** ptrs, u32 cnt) {
 
   u32 i;
