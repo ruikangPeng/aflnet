@@ -9175,7 +9175,7 @@ int main(int argc, char** argv) {
 
   fix_up_banner(argv[optind]); //UI有关，跟功能关系不大
 
-  check_if_tty(); //检查程序是否在tty终端运行
+  check_if_tty();  //检查程序是否在tty终端运行
 
   get_core_count(); //获取核心数
 
