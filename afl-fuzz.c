@@ -1150,8 +1150,8 @@ static u64 get_cur_time_us(void) {
 }
 
 
-/* Generate a random number (from 0 to limit - 1). This may
-   have slight bias. */
+/*  生成一个随机数（从 0 到 limit - 1）。
+    这可能存在轻微的偏差。 */
 
 static inline u32 UR(u32 limit) {
 
@@ -1575,6 +1575,7 @@ static void mark_as_redundant(struct queue_entry* q, u8 state) {
 
 static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
 
+  // 测试用例队列的初始化
   struct queue_entry* q = ck_alloc(sizeof(struct queue_entry));
 
   q->fname        = fname;
@@ -1625,33 +1626,33 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
     q->regions = (*extract_requests)(buf, len, &q->region_count);
     ck_free(buf);
 
-    //Keep track the maximal number of seed regions
-    //We use this for some optimization to reduce the overhead while following the server's sequence diagram
+    //跟踪种子区域的最大数量
+    //我们将其用于一些优化，以减少在遵循服务器的时序图时的开销
     if ((corpus_read_or_sync == 1) && (q->region_count > max_seed_region_count)) max_seed_region_count = q->region_count;
 
   } else {
-    //Convert the linked list kl_messages to regions
+    //将链表 kl_messages 转换为regions。
     q->regions = convert_kl_messages_to_regions(kl_messages, &q->region_count, messages_sent);
   }
 
-  /* save the regions' information to file for debugging purpose */
+  /* 将regions的信息保存到文件以进行后续调试。 */
   u8 *fn = alloc_printf("%s/regions/%s", out_dir, basename(fname));
   save_regions_to_file(q->regions, q->region_count, fn);
   ck_free(fn);
 
   last_path_time = get_cur_time();
 
-  //Add a new column to the was_fuzzed map
+  //向 was_fuzzed 映射添加一个新列。
   if (fuzzed_map_states) {
     expand_was_fuzzed_map(0, 1);
   } else {
-    //Also add a new row (for state 0) if needed
+    //如果需要，还需要添加一个新行（用于状态 0）。
     expand_was_fuzzed_map(1, 1);
   }
 }
 
 
-/* Destroy the entire queue. */
+/* 销毁整个队列。 */
 
 EXP_ST void destroy_queue(void) {
 
@@ -1663,7 +1664,7 @@ EXP_ST void destroy_queue(void) {
     ck_free(q->fname);
     ck_free(q->trace_mini);
     u32 i;
-    //Free AFLNet-specific data structure
+    //释放 AFLNet 特定的数据结构。
     for (i = 0; i < q->region_count; i++) {
       if (q->regions[i].state_sequence) ck_free(q->regions[i].state_sequence);
     }
@@ -1676,9 +1677,10 @@ EXP_ST void destroy_queue(void) {
 }
 
 
-/* Write bitmap to file. The bitmap is useful mostly for the secret
-   -B option, to focus a separate fuzzing session on a particular
-   interesting input without rediscovering all the others. */
+/*  将位图写入文件。
+    位图在大多数情况下对于秘密选项 -B 非常有用
+    它可以将独立的模糊会话聚焦在特定有趣的输入上
+    而无需重新发现其他所有输入。 */
 
 EXP_ST void write_bitmap(void) {
 
@@ -1701,7 +1703,7 @@ EXP_ST void write_bitmap(void) {
 }
 
 
-/* Read bitmap from file. This is for the -B option again. */
+/* 读取文件中的位图。这是针对 -B 选项的操作。 */
 
 EXP_ST void read_bitmap(u8* fname) {
 
@@ -8807,7 +8809,7 @@ static int check_ep_capability(cap_value_t cap, const char *filename) {
 
 #ifndef AFL_LIB
 
-/* 主入口点 */
+
 
 int main(int argc, char** argv) {
 
