@@ -307,7 +307,6 @@ region_t* extract_requests_tls(unsigned char* buf, unsigned int buf_size, unsign
   return regions;
 }
 
-
 region_t* extract_requests_dicom(unsigned char* buf, unsigned int buf_size, unsigned int* region_count_ref)
 {
   unsigned int pdu_length = 0;
@@ -525,7 +524,7 @@ region_t* extract_requests_ftp(unsigned char* buf, unsigned int buf_size, unsign
 
     memcpy(&mem[mem_count], buf + byte_count++, 1);
 
-    //翻译：检查最后两个字节是否为 0x0D0A。
+    //检查最后两个字节是否为 0x0D0A。
     if ((mem_count > 1) && (memcmp(&mem[mem_count - 1], terminator, 2) == 0)) {
       region_count++;
       regions = (region_t *)ck_realloc(regions, region_count * sizeof(region_t));
@@ -1302,7 +1301,7 @@ unsigned int* extract_response_codes_ftp(unsigned char* buf, unsigned int buf_si
     memcpy(&mem[mem_count], buf + byte_count++, 1);
 
     if ((mem_count > 0) && (memcmp(&mem[mem_count - 1], terminator, 2) == 0)) {
-      //Extract the response code which is the first 3 bytes
+      //提取响应码，即前三个字节
       char temp[4];
       memcpy(temp, mem, 4);
       temp[3] = 0x0;
@@ -1317,7 +1316,7 @@ unsigned int* extract_response_codes_ftp(unsigned char* buf, unsigned int buf_si
     } else {
       mem_count++;
       if (mem_count == mem_size) {
-        //enlarge the mem buffer
+        //扩大 mem 缓冲区的大小
         mem_size = mem_size * 2;
         mem=(char *)ck_realloc(mem, mem_size);
       }

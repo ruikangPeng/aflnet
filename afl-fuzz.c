@@ -5814,8 +5814,8 @@ static u8 fuzz_one(char** argv) {
 
 #else
 
-  //Skip some steps if in state_aware_mode because in this mode
-  //the seed is selected based on state-aware algorithms
+  //如果处于状态感知模式下，则跳过一些步骤
+  //在此模式下，种子是根据状态感知算法选择的
   if (state_aware_mode) goto AFLNET_REGIONS_SELECTION;
 
   if (pending_favored) {
@@ -5860,65 +5860,66 @@ AFLNET_REGIONS_SELECTION:;
   cur_depth = queue_cur->depth;
 
   u32 M2_start_region_ID = 0, M2_region_count = 0;
-  /* Identify the prefix M1, the candidate subsequence M2, and the suffix M3. See AFLNet paper */
-  /* In this implementation, we only need to indentify M2_start_region_ID which is the first region of M2
-  and M2_region_count which is the total number of regions in M2. How the information is identified is
-  state aware dependent. However, once the information is clear, the code for fuzzing preparation is the same */
+  /*  识别前缀 M1、候选子序列 M2 和后缀 M3。请参阅 AFLNet 论文 */
+  /*  在这个实现中，我们只需要识别 M2_start_region_ID
+      它是 M2 的第一个区域，以及 M2_region_count，它是 M2 中的总区域数
+      关于如何识别这些信息取决于状态感知
+      然而，一旦这些信息清晰了，模糊测试准备的代码是相同的 */
 
   if (state_aware_mode) {
-    /* In state aware mode, select M2 based on the targeted state ID */
+    /* 在状态感知模式下，根据目标状态 ID 选择 M2 */
     u32 total_region = queue_cur->region_count;
     if (total_region == 0) PFATAL("0 region found for %s", queue_cur->fname);
 
     if (target_state_id == 0) {
-      //No prefix subsequence (M1 is empty)
+      //没有前缀子序列( M1 为空)
       M2_start_region_ID = 0;
       M2_region_count = 0;
 
-      //To compute M2_region_count, we identify the first region which has a different annotation
-      //Now we quickly compare the state count, we could make it more fine grained by comparing the exact response codes
+      //为了计算 M2_region_count，我们识别第一个具有不同 annotation 的区域
+      //现在我们快速比较状态计数，我们可以通过比较精确的响应代码来使其更精细
       for(i = 0; i < queue_cur->region_count ; i++) {
         if (queue_cur->regions[i].state_count != queue_cur->regions[0].state_count) break;
         M2_region_count++;
       }
     } else {
-      //M1 is unlikely to be empty
+      // M1 不太可能为空
       M2_start_region_ID = 0;
 
-      //Identify M2_start_region_ID first based on the target_state_id
+      //首先根据目标状态ID识别 M2_start_region_ID
       for(i = 0; i < queue_cur->region_count; i++) {
         u32 regionalStateCount = queue_cur->regions[i].state_count;
         if (regionalStateCount > 0) {
-          //reachableStateID is the last ID in the state_sequence
+          //reachableStateID 是状态序列中的最后一个 ID
           u32 reachableStateID = queue_cur->regions[i].state_sequence[regionalStateCount - 1];
           M2_start_region_ID++;
           if (reachableStateID == target_state_id) break;
         } else {
-          //No annotation for this region
+          //该 region 没有 annotation
           return 1;
         }
       }
 
-      //Then identify M2_region_count
+      //然后确定 M2_region_count
       for(i = M2_start_region_ID; i < queue_cur->region_count ; i++) {
         if (queue_cur->regions[i].state_count != queue_cur->regions[M2_start_region_ID].state_count) break;
         M2_region_count++;
       }
 
-      //Handle corner case(s) and skip the current queue entry
+      //处理边界情况并跳过当前队列条目
       if (M2_start_region_ID >= queue_cur->region_count) return 1;
     }
   } else {
-    /* Select M2 randomly */
+    /* 随机选择 M2 */
     u32 total_region = queue_cur->region_count;
     if (total_region == 0) PFATAL("0 region found for %s", queue_cur->fname);
 
     M2_start_region_ID = UR(total_region);
     M2_region_count = UR(total_region - M2_start_region_ID);
-    if (M2_region_count == 0) M2_region_count++; //Mutate one region at least
+    if (M2_region_count == 0) M2_region_count++; //至少变异一个区域
   }
 
-  /* Construct the kl_messages linked list and identify boundary pointers (M2_prev and M2_next) */
+  /* 构建 kl_messages 链表并识别边界指针（M2_prev 和 M2_next） */
   kl_messages = construct_kl_messages(queue_cur->fname, queue_cur->regions, queue_cur->region_count);
 
   kliter_t(lms) *it;
@@ -5938,7 +5939,7 @@ AFLNET_REGIONS_SELECTION:;
     count++;
   }
 
-  /* Construct the buffer to be mutated and update out_buf */
+  /* 构建要进行变异的缓冲区并更新 out_buf */
   if (M2_prev == NULL) {
     it = kl_begin(kl_messages);
   } else {
@@ -5949,7 +5950,7 @@ AFLNET_REGIONS_SELECTION:;
   while (it != M2_next) {
     in_buf = (u8 *) ck_realloc (in_buf, in_buf_size + kl_val(it)->msize);
     if (!in_buf) PFATAL("AFLNet cannot allocate memory for in_buf");
-    //Retrieve data from kl_messages to populate the in_buf
+    //从 kl_messages 中获取数据来填充 in_buf
     memcpy(&in_buf[in_buf_size], kl_val(it)->mdata, kl_val(it)->msize);
 
     in_buf_size += kl_val(it)->msize;
@@ -5961,10 +5962,10 @@ AFLNET_REGIONS_SELECTION:;
   out_buf = ck_alloc_nozero(in_buf_size);
   memcpy(out_buf, in_buf, in_buf_size);
 
-  //Update len to keep the correct size of the buffer being mutated
+  //更新 len ，保持正在变异的缓冲区的大小正确
   len = in_buf_size;
 
-  //Save the len for later use
+  //保存 len 以供以后使用
   M2_len = len;
 
   /*********************
@@ -5973,15 +5974,13 @@ AFLNET_REGIONS_SELECTION:;
 
   orig_perf = perf_score = calculate_score(queue_cur);
 
-  /* Skip right away if -d is given, if we have done deterministic fuzzing on
-     this entry ourselves (was_fuzzed), or if it has gone through deterministic
-     testing in earlier, resumed runs (passed_det). */
+  /*  如果给定了 -d 参数，如果我们自己已经对该条目进行了确定性模糊测试（was_fuzzed）
+      或者如果它已经在之前的恢复运行中经历了确定性测试（passed_det），则立即跳过 */
 
   if (skip_deterministic || queue_cur->was_fuzzed || queue_cur->passed_det)
     goto havoc_stage;
 
-  /* Skip deterministic fuzzing if exec path checksum puts this out of scope
-     for this master instance. */
+  /* 如果执行路径的校验和使其超出了此主实例的范围，则跳过确定性模糊测试 */
 
   if (master_max && (queue_cur->exec_cksum % master_max) != master_id - 1)
     goto havoc_stage;
@@ -5998,7 +5997,7 @@ AFLNET_REGIONS_SELECTION:;
     _arf[(_bf) >> 3] ^= (128 >> ((_bf) & 7)); \
   } while (0)
 
-  /* Single walking bit. */
+  /* 单个位逐位变化 */
 
   stage_short = "flip1";
   stage_max   = len << 3;
@@ -6020,31 +6019,25 @@ AFLNET_REGIONS_SELECTION:;
 
     FLIP_BIT(out_buf, stage_cur);
 
-    /* While flipping the least significant bit in every byte, pull of an extra
-       trick to detect possible syntax tokens. In essence, the idea is that if
-       you have a binary blob like this:
+    /* 在翻转每个字节的最低有效位时，还可以使用额外的技巧来检测可能的语法令牌。
+      基本上，这个想法是，如果你有这样一个二进制块：
 
        xxxxxxxxIHDRxxxxxxxx
 
-       ...and changing the leading and trailing bytes causes variable or no
-       changes in program flow, but touching any character in the "IHDR" string
-       always produces the same, distinctive path, it's highly likely that
-       "IHDR" is an atomically-checked magic value of special significance to
-       the fuzzed format.
+       ...并且改变前导和尾随字节不会改变程序流
+       但是触摸"IHDR"字符串中的任何字符总是产生相同且独特的路径
+       那么很有可能"IHDR"是对模糊格式具有特殊重要性的原子检查的magic值。
 
-       We do this here, rather than as a separate stage, because it's a nice
-       way to keep the operation approximately "free" (i.e., no extra execs).
+       我们在这里执行这个操作，而不是作为一个单独的阶段，
+       因为这是一种很好的方式，可以将操作近似地保持"free"（即不需要额外的执行）。
 
-       Empirically, performing the check when flipping the least significant bit
-       is advantageous, compared to doing it at the time of more disruptive
-       changes, where the program flow may be affected in more violent ways.
+       经验证明，在翻转最低有效位时进行检查比在进行更具破坏性的变化时进行检查更有优势
+       因为在更具暴力性的变化时，程序流可能会受到更大的影响
 
-       The caveat is that we won't generate dictionaries in the -d mode or -S
-       mode - but that's probably a fair trade-off.
+       需要注意的是，在 -d 模式或 -S 模式下，我们不会生成字典，但这可能是一个公平的权衡
 
-       This won't work particularly well with paths that exhibit variable
-       behavior, but fails gracefully, so we'll carry out the checks anyway.
-
+       这对于表现出可变行为的路径效果不是特别好
+       但是即使失败，也会优雅地进行检查，所以我们仍然会进行这些检查
       */
 
     if (!dumb_mode && (stage_cur & 7) == 7) {
@@ -6053,8 +6046,7 @@ AFLNET_REGIONS_SELECTION:;
 
       if (stage_cur == stage_max - 1 && cksum == prev_cksum) {
 
-        /* If at end of file and we are still collecting a string, grab the
-           final character and force output. */
+        /* 如果在文件结束时我们仍在收集字符串，获取最后一个字符并强制输出 */
 
         if (a_len < MAX_AUTO_EXTRA) a_collect[a_len] = out_buf[stage_cur >> 3];
         a_len++;
@@ -6064,8 +6056,7 @@ AFLNET_REGIONS_SELECTION:;
 
       } else if (cksum != prev_cksum) {
 
-        /* Otherwise, if the checksum has changed, see if we have something
-           worthwhile queued up, and collect that if the answer is yes. */
+        /* 否则，如果校验和发生了变化，检查是否有有价值的内容排队等待，如果是，则收集该内容 */
 
         if (a_len >= MIN_AUTO_EXTRA && a_len <= MAX_AUTO_EXTRA)
           maybe_add_auto(a_collect, a_len);
@@ -6075,8 +6066,7 @@ AFLNET_REGIONS_SELECTION:;
 
       }
 
-      /* Continue collecting string, but only if the bit flip actually made
-         any difference - we don't want no-op tokens. */
+      /* 继续收集字符串，但只有在位翻转实际上产生了任何差异时才这样做 - 我们不希望出现无操作的标记 */
 
       if (cksum != queue_cur->exec_cksum) {
 
@@ -6094,7 +6084,7 @@ AFLNET_REGIONS_SELECTION:;
   stage_finds[STAGE_FLIP1]  += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_FLIP1] += stage_max;
 
-  /* Two walking bits. */
+  /* 两个位逐位变化 */
 
   stage_name  = "bitflip 2/1";
   stage_short = "flip2";
@@ -6121,7 +6111,7 @@ AFLNET_REGIONS_SELECTION:;
   stage_finds[STAGE_FLIP2]  += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_FLIP2] += stage_max;
 
-  /* Four walking bits. */
+  /* 四个位逐位变化 */
 
   stage_name  = "bitflip 4/1";
   stage_short = "flip4";
@@ -6152,11 +6142,11 @@ AFLNET_REGIONS_SELECTION:;
   stage_finds[STAGE_FLIP4]  += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_FLIP4] += stage_max;
 
-  /* Effector map setup. These macros calculate:
+  /* 效应图(effector map)设置。这些宏计算：
 
-     EFF_APOS      - position of a particular file offset in the map.
-     EFF_ALEN      - length of a map with a particular number of bytes.
-     EFF_SPAN_ALEN - map span for a sequence of bytes.
+     EFF_APOS      - 在映射中计算特定文件偏移量的位置
+     EFF_ALEN      - 使用特定字节数计算映射的长度
+     EFF_SPAN_ALEN - 一系列字节的映射跨度
 
    */
 
@@ -6165,8 +6155,8 @@ AFLNET_REGIONS_SELECTION:;
 #define EFF_ALEN(_l)          (EFF_APOS(_l) + !!EFF_REM(_l))
 #define EFF_SPAN_ALEN(_p, _l) (EFF_APOS((_p) + (_l) - 1) - EFF_APOS(_p) + 1)
 
-  /* Initialize effector map for the next step (see comments below). Always
-     flag first and last byte as doing something. */
+  /* 为下一步初始化效应图(effector map)（参见下面的注释）
+    始终将第一个和最后一个字节标记为正在执行某些操作 */
 
   eff_map    = ck_alloc(EFF_ALEN(len));
   eff_map[0] = 1;
@@ -6176,7 +6166,7 @@ AFLNET_REGIONS_SELECTION:;
     eff_cnt++;
   }
 
-  /* Walking byte. */
+  /* 逐字节变化 */
 
   stage_name  = "bitflip 8/8";
   stage_short = "flip8";
@@ -6192,17 +6182,15 @@ AFLNET_REGIONS_SELECTION:;
 
     if (common_fuzz_stuff(argv, out_buf, len)) goto abandon_entry;
 
-    /* We also use this stage to pull off a simple trick: we identify
-       bytes that seem to have no effect on the current execution path
-       even when fully flipped - and we skip them during more expensive
-       deterministic stages, such as arithmetics or known ints. */
+    /* 我们还利用这个阶段来实施一个简单的技巧：
+      我们识别出那些即使完全翻转也对当前执行路径没有影响的字节，
+      并在更昂贵的确定性阶段（如算术或已知整数）中跳过它们 */
 
     if (!eff_map[EFF_APOS(stage_cur)]) {
 
       u32 cksum;
 
-      /* If in dumb mode or if the file is very short, just flag everything
-         without wasting time on checksums. */
+      /* 如果处于普通模式或者文件非常短，直接标记所有内容，不浪费时间计算校验和 */
 
       if (!dumb_mode && len >= EFF_MIN_LEN)
         cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
@@ -6220,9 +6208,8 @@ AFLNET_REGIONS_SELECTION:;
 
   }
 
-  /* If the effector map is more than EFF_MAX_PERC dense, just flag the
-     whole thing as worth fuzzing, since we wouldn't be saving much time
-     anyway. */
+  /* 如果效应图(effector map)的密集度超过 EFF_MAX_PERC
+    将整个效应图(effector map)标记为值得模糊化的内容，因为无论如何我们也不会节省多少时间 */
 
   if (eff_cnt != EFF_ALEN(len) &&
       eff_cnt * 100 / EFF_ALEN(len) > EFF_MAX_PERC) {
@@ -6244,7 +6231,7 @@ AFLNET_REGIONS_SELECTION:;
   stage_finds[STAGE_FLIP8]  += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_FLIP8] += stage_max;
 
-  /* Two walking bytes. */
+  /* 两个字节逐字节变化。 */
 
   if (len < 2) goto skip_bitflip;
 
@@ -6257,7 +6244,7 @@ AFLNET_REGIONS_SELECTION:;
 
   for (i = 0; i < len - 1; i++) {
 
-    /* Let's consult the effector map... */
+    /* 让我们查看效应图(effector map)... */
 
     if (!eff_map[EFF_APOS(i)] && !eff_map[EFF_APOS(i + 1)]) {
       stage_max--;
@@ -6283,7 +6270,7 @@ AFLNET_REGIONS_SELECTION:;
 
   if (len < 4) goto skip_bitflip;
 
-  /* Four walking bytes. */
+  /* 四个字节逐字节变化 */
 
   stage_name  = "bitflip 32/8";
   stage_short = "flip32";
@@ -6294,7 +6281,7 @@ AFLNET_REGIONS_SELECTION:;
 
   for (i = 0; i < len - 3; i++) {
 
-    /* Let's consult the effector map... */
+    /* 让我们查看效应图(effector map)... */
     if (!eff_map[EFF_APOS(i)] && !eff_map[EFF_APOS(i + 1)] &&
         !eff_map[EFF_APOS(i + 2)] && !eff_map[EFF_APOS(i + 3)]) {
       stage_max--;
