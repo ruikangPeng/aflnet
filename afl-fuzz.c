@@ -76,15 +76,15 @@
 #  include <sys/sysctl.h>
 #endif /* __APPLE__ || __FreeBSD__ || __OpenBSD__ */
 
-/* For systems that have sched_setaffinity; right now just Linux, but one
-   can hope... */
+/*  对于具有 `sched_setaffinity` 的系统
+    目前仅限于 Linux，但我们可以期望... */
 
 #ifdef __linux__
 #  define HAVE_AFFINITY 1
 #endif /* __linux__ */
 
-/* A toggle to export some variables when building as a library. Not very
-   useful for the general public. */
+/*  在构建为库时，导出一些变量的开关
+    对于普通用户来说并不是很有用。 */
 
 #ifdef AFL_LIB
 #  define EXP_ST
@@ -92,8 +92,8 @@
 #  define EXP_ST static
 #endif /* ^AFL_LIB */
 
-/* Lots of globals, but mostly for the status UI and other things where it
-   really makes no sense to haul them around as function parameters. */
+/*  有很多全局变量，但主要用于状态 UI 和其他一些场景
+    将它们作为函数参数传递并不合理。 */
 
 
 EXP_ST u8 *in_dir,                    /* 包含测试用例的输入目录             */
@@ -3978,9 +3978,9 @@ static void write_crash_readme(void) {
 }
 
 
-/* Check if the result of an execve() during routine fuzzing is interesting,
-   save or queue the input test case for further analysis if so. Returns 1 if
-   entry is saved, 0 otherwise. */
+/*  检查在常规模糊测试期间 execve() 的结果是否有趣
+    如果是，则保存或将输入测试用例排队以供进一步分析
+    如果保存了输入，则返回 1；否则返回 0 */
 
 static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
