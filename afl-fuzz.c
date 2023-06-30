@@ -661,7 +661,7 @@ unsigned int choose_target_state(u8 mode) {
       if (selected_state_index == state_ids_count) selected_state_index = 0;
       break;
     case FAVOR:
-      /* 进行几个循环的轮流选择（ROUND_ROBIN），以获取足够的统计信息。*/
+      /* 进行几个循环的轮流选择(ROUND_ROBIN)，获取足够的统计信息。*/
       if (state_cycles < 5) {
         result = state_ids[selected_state_index];
         selected_state_index++;
@@ -1169,7 +1169,7 @@ static inline u32 UR(u32 limit) {
 }
 
 
-/* Shuffle an array of pointers. Might be slightly biased. */
+/* Shuffle an array of pointers. 可能会略有偏差 */
 static void shuffle_ptrs(void** ptrs, u32 cnt) {
 
   u32 i;
@@ -1306,7 +1306,6 @@ static void bind_to_free_cpu(void) {
 
 /* Helper function to compare buffers; returns first and last differing offset. We
    use this to find reasonable locations for splicing two files. */
-
 static void locate_diffs(u8* ptr1, u8* ptr2, u32 len, s32* first, s32* last) {
 
   s32 f_loc = -1;
@@ -1334,10 +1333,9 @@ static void locate_diffs(u8* ptr1, u8* ptr2, u32 len, s32* first, s32* last) {
 #endif /* !IGNORE_FINDS */
 
 
-/* Describe integer. Uses 12 cyclic static buffers for return values. The value
-   returned should be five characters or less for all the integers we reasonably
-   expect to see. */
-
+/*  比较缓冲区的辅助函数
+    返回第一个和最后一个不同的偏移量
+    我们使用这个函数来找到合理的位置，将两个文件进行拼接 */
 static u8* DI(u64 val) {
 
   static u8 tmp[12][16];
@@ -1392,9 +1390,8 @@ static u8* DI(u64 val) {
 }
 
 
-/* Describe float. Similar to the above, except with a single
-   static buffer. */
-
+/*  描述 float
+    类似于上面的描述，只是使用单个静态缓冲区 */
 static u8* DF(double val) {
 
   static u8 tmp[16];
@@ -1414,8 +1411,7 @@ static u8* DF(double val) {
 }
 
 
-/* Describe integer as memory size. */
-
+/* 以内存大小的形式描述整数 */
 static u8* DMS(u64 val) {
 
   static u8 tmp[12][16];
@@ -1465,8 +1461,7 @@ static u8* DMS(u64 val) {
 }
 
 
-/* Describe time delta. Returns one static buffer, 34 chars of less. */
-
+/* 描述时间间隔。返回一个静态缓冲区，长度不超过34个字符 */
 static u8* DTD(u64 cur_ms, u64 event_ms) {
 
   static u8 tmp[64];
@@ -1488,10 +1483,8 @@ static u8* DTD(u64 cur_ms, u64 event_ms) {
 }
 
 
-/* Mark deterministic checks as done for a particular queue entry. We use the
-   .state file to avoid repeating deterministic fuzzing when resuming aborted
-   scans. */
-
+/*  将特定队列条目的确定性检查标记为已完成
+    我们使用 .state 文件，在恢复中止扫描时避免重复进行确定性模糊测试 */
 static void mark_as_det_done(struct queue_entry* q) {
 
   u8* fn = strrchr(q->fname, '/');
@@ -1510,9 +1503,8 @@ static void mark_as_det_done(struct queue_entry* q) {
 }
 
 
-/* Mark as variable. Create symlinks if possible to make it easier to examine
-   the files. */
-
+/*  标记为可变
+    如果可能的话，创建符号链接以便更容易检查文件 */
 static void mark_as_variable(struct queue_entry* q) {
 
   u8 *fn = strrchr(q->fname, '/') + 1, *ldest;
@@ -1536,9 +1528,8 @@ static void mark_as_variable(struct queue_entry* q) {
 }
 
 
-/* Mark / unmark as redundant (edge-only). This is not used for restoring state,
-   but may be useful for post-processing datasets. */
-
+/*  标记/取消标记为冗余（仅边缘）
+    这不用于恢复状态，但可能对后处理数据集有用 */
 static void mark_as_redundant(struct queue_entry* q, u8 state) {
 
   u8* fn;
@@ -1568,8 +1559,7 @@ static void mark_as_redundant(struct queue_entry* q, u8 state) {
 }
 
 
-/* Append new test case to the queue. */
-
+/* 将新的测试用例追加到队列中 */
 static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
 
   // 测试用例队列的初始化
@@ -1607,12 +1597,12 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
 
   }
 
-  /* AFLNet: extract regions keeping client requests if needed */
+  /* AFLNet：如果需要，提取 region 并保留客户端请求 */
   if (corpus_read_or_sync) {
     FILE *fp;
     unsigned char *buf;
 
-    /* opening file for reading */
+    /* 打开文件以进行读取 */
     fp = fopen(fname , "rb");
 
     buf = (unsigned char *)ck_alloc(len);
@@ -1650,7 +1640,6 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
 
 
 /* 销毁整个队列。 */
-
 EXP_ST void destroy_queue(void) {
 
   struct queue_entry *q = queue, *n;
@@ -1678,7 +1667,6 @@ EXP_ST void destroy_queue(void) {
     位图在大多数情况下对于秘密选项 -B 非常有用
     它可以将独立的模糊会话聚焦在特定有趣的输入上
     而无需重新发现其他所有输入。 */
-
 EXP_ST void write_bitmap(void) {
 
   u8* fname;
@@ -1701,7 +1689,6 @@ EXP_ST void write_bitmap(void) {
 
 
 /* 读取文件中的位图。这是针对 -B 选项的操作。 */
-
 EXP_ST void read_bitmap(u8* fname) {
 
   s32 fd = open(fname, O_RDONLY);
@@ -1715,14 +1702,13 @@ EXP_ST void read_bitmap(u8* fname) {
 }
 
 
-/* Check if the current execution path brings anything new to the table.
-   Update virgin bits to reflect the finds. Returns 1 if the only change is
-   the hit-count for a particular tuple; 2 if there are new tuples seen.
-   Updates the map, so subsequent calls will always return 0.
+/*  检查当前执行路径是否有新的发现
+    更新原始位以反映这些发现
+    如果仅更改了特定元组的命中计数，则返回 1 ；如果有新的元组出现，则返回 2
+    更新地图，因此后续调用将始终返回 0
 
-   This function is called after every exec() on a fairly large buffer, so
-   it needs to be fast. We do this in 32-bit and 64-bit flavors. */
-
+    这个函数在对一个相当大的缓冲区进行每次 exec() 之后调用
+    因此需要快速执行。我们提供了32位和64位版本 */
 static inline u8 has_new_bits(u8* virgin_map) {
 
 #ifdef WORD_SIZE_64
@@ -1745,9 +1731,8 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
   while (i--) {
 
-    /* Optimize for (*current & *virgin) == 0 - i.e., no bits in current bitmap
-       that have not been already cleared from the virgin map - since this will
-       almost always be the case. */
+    /*  针对 (*current & *virgin) == 0 进行优化
+        即当前位图中没有从原始位图中清除的位，因为这几乎总是符合条件的情况 */
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
 
@@ -1756,8 +1741,8 @@ static inline u8 has_new_bits(u8* virgin_map) {
         u8* cur = (u8*)current;
         u8* vir = (u8*)virgin;
 
-        /* Looks like we have not found any new bytes yet; see if any non-zero
-           bytes in current[] are pristine in virgin[]. */
+        /*  看起来我们还没有找到任何新的字节
+            查看当前数组中是否有任何非零字节在原始数组中是原始的 */
 
 #ifdef WORD_SIZE_64
 
@@ -1793,9 +1778,8 @@ static inline u8 has_new_bits(u8* virgin_map) {
 }
 
 
-/* Count the number of bits set in the provided bitmap. Used for the status
-   screen several times every second, does not have to be fast. */
-
+/*  计算提供的位图中设置的位数
+    在状态屏幕上每秒钟多次使用，不需要快速执行 */
 static u32 count_bits(u8* mem) {
 
   u32* ptr = (u32*)mem;
@@ -1806,8 +1790,7 @@ static u32 count_bits(u8* mem) {
 
     u32 v = *(ptr++);
 
-    /* This gets called on the inverse, virgin bitmap; optimize for sparse
-       data. */
+    /* 这个函数在逆转的原始位图上调用；针对稀疏数据进行优化 */
 
     if (v == 0xffffffff) {
       ret += 32;
@@ -1827,10 +1810,8 @@ static u32 count_bits(u8* mem) {
 
 #define FF(_b)  (0xff << ((_b) << 3))
 
-/* Count the number of bytes set in the bitmap. Called fairly sporadically,
-   mostly to update the status screen or calibrate and examine confirmed
-   new paths. */
-
+/*  计算位图中设置的字节数。
+    调用相对不频繁，主要用于更新状态屏幕或校准和检查确认的新路径 */
 static u32 count_bytes(u8* mem) {
 
   u32* ptr = (u32*)mem;
@@ -1854,9 +1835,8 @@ static u32 count_bytes(u8* mem) {
 }
 
 
-/* Count the number of non-255 bytes set in the bitmap. Used strictly for the
-   status screen, several calls per second or so. */
-
+/*  计算位图中设置的非255字节的数量
+    严格用于状态屏幕，每秒钟多次调用 */
 static u32 count_non_255_bytes(u8* mem) {
 
   u32* ptr = (u32*)mem;
@@ -1867,8 +1847,7 @@ static u32 count_non_255_bytes(u8* mem) {
 
     u32 v = *(ptr++);
 
-    /* This is called on the virgin bitmap, so optimize for the most likely
-       case. */
+    /* 这个函数在原始位图上调用，因此针对最有可能的情况进行优化 */
 
     if (v == 0xffffffff) continue;
     if ((v & FF(0)) != FF(0)) ret++;
@@ -2132,8 +2111,7 @@ static void update_bitmap_score(struct queue_entry* q) {
 
 
 /*  上述讨论中的机制的第二部分是一个程序，
-    它遍历top_rated[]条目，然后顺序地选择之前未
-    见过的字节（temp_v）作为赢家，
+    它遍历top_rated[]条目，然后顺序地选择之前未见过的字节（temp_v）
     并将它们标记为优选，至少在下一次运行之前是如此。
     优选条目在所有模糊测试步骤中获得更多的执行时间。 */
 
@@ -2160,7 +2138,7 @@ static void cull_queue(void) {
     q = q->next;
   }
 
-  /*  让我们看看位图中是否有任何内容未在temp_v中捕获。
+  /*  看看位图中是否有任何内容未在temp_v中捕获。
       如果是的话，并且它有一个top_rated[]的竞争者，让我们使用它。 */
 
   for (i = 0; i < MAP_SIZE; i++)
@@ -4785,7 +4763,6 @@ static void check_term_size(void);
 
 /*  "最后的终端输出".一个漂亮的复古统计信息屏幕！
     每隔 stats_update_freq 次执行 execve() 调用时，以及在其他几种情况下调用该函数。 */
-
 static void show_stats(void) {
 
   static u64 last_stats_ms, last_plot_ms, last_ms, last_execs;
@@ -5279,7 +5256,6 @@ static void show_stats(void) {
 /*  在处理输入目录结束时，显示快速统计信息
     以及一些警告。一些校准的内容也包含在这里，
     还有一些硬编码的常量。也许以后可以进行清理。 */
-
 static void show_init_stats(void) {
 
   struct queue_entry* q = queue;
@@ -5383,10 +5359,9 @@ static void show_init_stats(void) {
 
 }
 
-/* Write a modified test case, run program, process results. Handle
-   error conditions, returning 1 if it's time to bail out. This is
-   a helper function for fuzz_one(). */
-
+/*  编写修改后的测试用例，运行程序并处理结果
+    处理错误情况，如果是退出的时机则返回 1
+    这是 fuzz_one() 的辅助函数。 */
 EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
   u8 fault;
@@ -5400,41 +5375,41 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
   write_to_testcase(out_buf, len);
 
-  /* AFLNet update kl_messages linked list */
+  /* AFLNet 更新 kl_messages 链表。 */
 
-  // parse the out_buf into messages
+  // 将 out_buf 解析为消息
   u32 region_count = 0;
   region_t *regions = (*extract_requests)(out_buf, len, &region_count);
   if (!region_count) PFATAL("AFLNet Region count cannot be Zero");
 
-  // update kl_messages linked list
+  // 更新 kl_messages 链表
   u32 i;
   kliter_t(lms) *prev_last_message, *cur_last_message;
   prev_last_message = get_last_message(kl_messages);
 
-  // limit the #messages based on max_seed_region_count to reduce overhead
+  // 根据 max_seed_region_count 限制消息数量，以减少开销
   for (i = 0; i < region_count; i++) {
     u32 len;
-    //Identify region size
+    //确定 region 大小
     if (i == max_seed_region_count) {
       len = regions[region_count - 1].end_byte - regions[i].start_byte + 1;
     } else {
       len = regions[i].end_byte - regions[i].start_byte + 1;
     }
 
-    //Create a new message
+    //创建一条新的消息
     message_t *m = (message_t *) ck_alloc(sizeof(message_t));
     m->mdata = (char *) ck_alloc(len);
     m->msize = len;
     if (m->mdata == NULL) PFATAL("Unable to allocate memory region to store new message");
     memcpy(m->mdata, &out_buf[regions[i].start_byte], len);
 
-    //Insert the message to the linked list
+    //将消息插入到链表中
     *kl_pushp(lms, kl_messages) = m;
 
-    //Update M2_next in case it points to the tail (M3 is empty)
-    //because the tail in klist is updated once a new entry is pushed into it
-    //in fact, the old tail storage is used to store the newly added entry and a new tail is created
+    //如果 M2_next 指向尾部（M3 为空），则更新 M2_next
+    //因为一旦新的条目被推送到 klist 中，尾部就会被更新
+    //实际上，旧的尾部存储被用于存储新添加的条目，并创建一个新的尾部
     if (M2_next->next == kl_end(kl_messages)) {
       M2_next = kl_end(kl_messages);
     }
@@ -5445,9 +5420,9 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
   cur_last_message = get_last_message(kl_messages);
 
-  // update the linked list with the new M2 & free the previous M2
+  // 使用新的 M2 更新链表，并释放先前的 M2
 
-  //detach the head of previous M2 from the list
+  //将先前的 M2 的头部从链表中分离
   kliter_t(lms) *old_M2_start;
   if (M2_prev == NULL) {
     old_M2_start = kl_begin(kl_messages);
@@ -5461,7 +5436,7 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
     kl_next(prev_last_message) = kl_end(kl_messages);
   }
 
-  // free the previous M2
+  // 释放先前的 M2
   kliter_t(lms) *cur_it, *next_it;
   cur_it = old_M2_start;
   next_it = kl_next(cur_it);
@@ -5479,7 +5454,7 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
   fault = run_target(argv, exec_tmout);
 
-  //Update fuzz count, no matter whether the generated test is interesting or not
+  //无论生成的测试是否有趣，都更新模糊计数
   if (state_aware_mode) update_fuzzs();
 
   if (stop_soon) return 1;
@@ -5493,8 +5468,7 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
   } else subseq_tmouts = 0;
 
-  /* Users can hit us with SIGUSR1 to request the current input
-     to be abandoned. */
+  /* 用户可以使用 SIGUSR1 信号请求放弃当前的输入 */
 
   if (skip_requested) {
 
@@ -5504,7 +5478,7 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
   }
 
-  /* This handles FAULT_ERROR for us: */
+  /* 这为我们处理了 FAULT_ERROR */
 
   queued_discovered += save_if_interesting(argv, out_buf, len, fault);
 
@@ -5518,7 +5492,6 @@ EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
 /* Helper to choose random block len for block operations in fuzz_one().
    Doesn't return zero, provided that max_len is > 0. */
-
 static u32 choose_block_len(u32 limit) {
 
   u32 min_value, max_value;
