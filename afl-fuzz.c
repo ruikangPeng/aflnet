@@ -9058,7 +9058,7 @@ int main(int argc, char** argv) {
         false_negative_reduction = 1;
         break;
 
-      case 'c': /* 脚本清理 */
+      case 'c': /* 清理脚本 */
 
         if (cleanup_script) FATAL("Multiple -c options not supported");
         cleanup_script = optarg;
@@ -9143,10 +9143,10 @@ int main(int argc, char** argv) {
 #endif /* HAVE_AFFINITY */
 
   check_crash_handling(); //确保核心转储（core dumps）不会发送给一个程序。
-  check_cpu_governor();   //检查 CPU 调度器（governor）。
+  check_cpu_governor();   //检查 CPU 调度器(governor)
 
   setup_post();           //加载后处理器（postprocessor），如果可用的话。
-  setup_shm();            //配置共享内存和`virgin_bits`。这在启动时被调用。
+  setup_shm();            //配置共享内存和 virgin_bits 。这在启动时被调用。
   init_count_class16();   //为后续的处理过程建立一个查找表
 
   setup_ipsm();           //将已实现的状态机初始化为 Graphviz 图
@@ -9163,7 +9163,7 @@ int main(int argc, char** argv) {
 
   detect_file_args(argv + optind + 1);    //检测参数中的 @@ 符号。
 
-  if (!out_file) setup_stdio_file();      //如果没有使用 `-f` 参数，则设置模糊数据的输出文件。
+  if (!out_file) setup_stdio_file();      //如果没有使用 -f 参数，则设置模糊数据的输出文件。
 
   check_binary(argv[optind]);
 
