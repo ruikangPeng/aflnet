@@ -169,10 +169,10 @@ EXP_ST u32 queued_paths,              /* Total number of queued testcases */
            queued_at_start,           /* Total number of initial inputs   */
            queued_discovered,         /* Items discovered during this run */
            queued_imported,           /* Items imported via -S            */
-           queued_favored,            /* Paths deemed favorable           */
+           queued_favored,            /* 被认为是有利的路径                */
            queued_with_cov,           /* Paths with new coverage bytes    */
            pending_not_fuzzed,        /* Queued but not done yet          */
-           pending_favored,           /* Pending favored paths            */
+           pending_favored,           /* 待定的新路径                      */
            cur_skipped_paths,         /* Abandoned inputs in cur cycle    */
            cur_depth,                 /* Current path depth               */
            max_depth,                 /* Max path depth                   */
@@ -361,27 +361,27 @@ u8 net_protocol;
 u8* net_ip;
 u32 net_port;
 
-char *response_buf = NULL; //接收服务器返回响应的缓冲区
-int response_buf_size = 0; //统计整个接收响应的缓冲区长度
+char *response_buf = NULL;        //接收服务器返回响应的缓冲区
+int response_buf_size = 0;        //统计整个接收响应的缓冲区长度
 //统计累计响应的buffer的长度，示例说 response_bytes[i]的值为从第0个响应到第i个响应从服务器接收到的响应长度值
 u32 *response_bytes = NULL;
 
 u32 max_annotated_regions = 0;
-u32 target_state_id = 0;
-u32 *state_ids = NULL;
-u32 state_ids_count = 0;
+u32 target_state_id = 0;        //选择的目标状态
+u32 *state_ids = NULL;          //这是一个可供选择的状态数组
+u32 state_ids_count = 0;        //可供选择的状态数组内的状态数量
 u32 selected_state_index = 0;
-u32 state_cycles = 0;
+u32 state_cycles = 0;           //状态数组循环的次数
 u32 messages_sent = 0;
 
-EXP_ST u8 session_virgin_bits[MAP_SIZE];     /* 记录在服务器运行中还未被覆盖的区域。MAP_SIZE等的值定义在config.h中 */
-EXP_ST u8 *cleanup_script; /* 清理SUT环境的脚本 - 使模糊测试更确定性。*/
-EXP_ST u8 *netns_name; /*在网络命名空间中运行服务器的名称。*/
-char **was_fuzzed_map = NULL; /*一个保持特定状态的was_fuzzed信息的二维数组。*/
+EXP_ST u8 session_virgin_bits[MAP_SIZE];      // 记录在服务器运行中还未被覆盖的区域。MAP_SIZE等的值定义在config.h中 
+EXP_ST u8 *cleanup_script;                    // 清理SUT环境的脚本 - 使模糊测试更确定性。
+EXP_ST u8 *netns_name;                        // 在网络命名空间中运行服务器的名称。
+char **was_fuzzed_map = NULL;                 // 一个保持特定状态的was_fuzzed信息的二维数组。
 u32 fuzzed_map_states = 0;
 u32 fuzzed_map_qentries = 0;
 u32 max_seed_region_count = 0;
-u32 local_port;		/* 用作源的TCP/UDP端口号。 */
+u32 local_port;		                            // 用作源的TCP/UDP端口号。 
 
 /* flags */
 u8 use_net = 0;
@@ -389,11 +389,12 @@ u8 poll_wait = 0;
 u8 server_wait = 0;
 u8 socket_timeout = 0;
 u8 protocol_selected = 0;
-u8 terminate_child = 0; //如果afl-fuzz后面有-K，terminate_child = 1
+u8 terminate_child = 0;                         //如果afl-fuzz后面有-K，terminate_child = 1
 u8 corpus_read_or_sync = 0;
-u8 state_aware_mode = 0;  //如果afl-fuzz后面有-E，表示启用状态感知，state_aware_mode = 1 
-u8 region_level_mutation = 0; ////如果afl-fuzz后面有-R，region_level_mutation = 1
-u8 state_selection_algo = ROUND_ROBIN, seed_selection_algo = RANDOM_SELECTION; //afl-fuzz命令-q、-s后面跟的参数值
+u8 state_aware_mode = 0;                        //如果afl-fuzz后面有-E，表示启用状态感知，state_aware_mode = 1 
+u8 region_level_mutation = 0;                   //如果afl-fuzz后面有-R，region_level_mutation = 1
+u8 state_selection_algo = ROUND_ROBIN;          //afl-fuzz命令-q后面跟的参数值
+u8 seed_selection_algo = RANDOM_SELECTION;      //afl-fuzz命令-s后面跟的参数值
 u8 false_negative_reduction = 0;
 
 /* Implemented state machine */
@@ -595,7 +596,7 @@ void update_fuzzs() {
   kh_destroy(hs32, khs_state_ids);
 }
 
-/* 返回包含给定值的 "region" 的索引。 */
+/* 返回包含给定值的 region 的索引。 */
 u32 index_search(u32 *A, u32 n, u32 val) {
   u32 index = 0;
   for(index = 0; index < n; index++) {
@@ -2110,11 +2111,6 @@ static void update_bitmap_score(struct queue_entry* q) {
 }
 
 
-/*  上述讨论中的机制的第二部分是一个程序，
-    它遍历top_rated[]条目，然后顺序地选择之前未见过的字节（temp_v）
-    并将它们标记为优选，至少在下一次运行之前是如此。
-    优选条目在所有模糊测试步骤中获得更多的执行时间。 */
-
 static void cull_queue(void) {
 
   struct queue_entry* q;
@@ -2146,7 +2142,7 @@ static void cull_queue(void) {
 
       u32 j = MAP_SIZE >> 3;
 
-      /* 从temp_v中移除所有属于当前条目的位。(Remove all bits belonging to the current entry from temp_v.) */
+      /* Remove all bits belonging to the current entry from temp_v.) */
 
       while (j--)
         if (top_rated[i]->trace_mini[j])
@@ -4157,12 +4153,11 @@ keep_as_crash:
 }
 
 
-/*  在恢复运行时，尝试找到要从哪个队列位置开始的位置。
-    这只有在恢复运行时，且我们能找到原始的 fuzzer_stats 时才有意义。 */
+// 通过读取存储状态的文件 fuzzer_stats，获取"cur_path"字段的值作为继续执行的起始位置
 
 static u32 find_start_position(void) {
 
-  static u8 tmp[4096]; /* 应该对任何人来说足够了。 */
+  static u8 tmp[4096]; 
 
   u8  *fn, *off;
   s32 fd, i;
@@ -6312,7 +6307,7 @@ skip_bitflip:
    * ARITHMETIC INC/DEC *
    **********************/
 
-  /* 8-bit arithmetics. */
+  /* 8-bit 运算. */
 
   stage_name  = "arith 8/8";
   stage_short = "arith8";
@@ -8719,7 +8714,7 @@ static void save_cmdline(u32 argc, char** argv) {
 
 }
 
-/* 检查`afl-fuzz`（文件/进程）是否具有一些有效且被允许的能力。 */
+/* 检查 afl-fuzz（文件/进程）是否具有一些有效且被允许的能力。 */
 
 static int check_ep_capability(cap_value_t cap, const char *filename) {
   cap_t file_cap, proc_cap;
@@ -8913,9 +8908,7 @@ int main(int argc, char** argv) {
 
         /* 这是一个秘密未记录的选项！它在正常的模糊测试过程中，如果你发现了一个有趣的测试用例，
         并且希望在不重新发现之前已经找到的任何测试用例的情况下对其进行变异，那么这个选项就非常有用。
-
         要使用这个模式，你需要将 -B 指向先前运行时为完全相同的二进制文件生成的fuzz_bitmap（位图文件）... 就是这样。
-
         我只在某个特定文件的变体上使用过一次或两次，所以我没有将其作为官方设置。 */
 
         if (in_bitmap) FATAL("Multiple -B options not supported");
@@ -8986,7 +8979,7 @@ int main(int argc, char** argv) {
         netns_name = optarg;
         break;
 
-      case 'P': /* protocol to be tested */
+      case 'P': 
         if (protocol_selected) FATAL("Multiple -P options not supported");
 
         if (!strcmp(optarg, "RTSP")) {
@@ -9040,11 +9033,11 @@ int main(int argc, char** argv) {
         state_aware_mode = 1;
         break;
 
-      case 'q': /* 状态选择选项 */
+      case 'q': /* 状态选择选项，将 -q 后面的参数值赋值给 state_selection_algo */
         if (sscanf(optarg, "%hhu", &state_selection_algo) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -q");
         break;
 
-      case 's': /* 种子选择选项 */
+      case 's': /* 种子选择选项，将 -s 后面的参数值赋值给 seed_selection_algo */
         if (sscanf(optarg, "%hhu", &seed_selection_algo) < 1 || optarg[0] == '-') FATAL("Bad syntax used for -s");
         break;
 
@@ -9130,51 +9123,51 @@ int main(int argc, char** argv) {
   if (getenv("AFL_LD_PRELOAD"))
     FATAL("Use AFL_PRELOAD instead of AFL_LD_PRELOAD");
 
-  save_cmdline(argc, argv); //把参数全部转移到堆上存储
+  save_cmdline(argc, argv);                 //把参数全部转移到堆上存储
 
-  fix_up_banner(argv[optind]); //UI有关，跟功能关系不大
+  fix_up_banner(argv[optind]);              //UI有关，跟功能关系不大
 
-  check_if_tty();  //检查程序是否在tty终端运行
+  check_if_tty();                           //检查程序是否在tty终端运行
 
-  get_core_count(); //获取核心数
+  get_core_count();                         //获取核心数
 
 #ifdef HAVE_AFFINITY
   bind_to_free_cpu();
 #endif /* HAVE_AFFINITY */
 
-  check_crash_handling(); //确保核心转储（core dumps）不会发送给一个程序。
-  check_cpu_governor();   //检查 CPU 调度器(governor)
+  check_crash_handling();                   //确保核心转储（core dumps）不会发送给一个程序。
+  check_cpu_governor();                     //检查 CPU 调度器(governor)
 
-  setup_post();           //加载后处理器（postprocessor），如果可用的话。
-  setup_shm();            //配置共享内存和 virgin_bits 。这在启动时被调用。
-  init_count_class16();   //为后续的处理过程建立一个查找表
+  setup_post();                             //加载后处理器（postprocessor），如果可用的话。
+  setup_shm();                              //配置共享内存和 virgin_bits 。这在启动时被调用。
+  init_count_class16();                     //为后续的处理过程建立一个查找表
 
-  setup_ipsm();           //将已实现的状态机初始化为 Graphviz 图
+  setup_ipsm();                             //将已实现的状态机初始化为 Graphviz 图
 
-  setup_dirs_fds();       //准备输出目录和文件描述符。
-  read_testcases();       //从输入目录中读取所有测试用例，然后将它们排入测试队列。在启动时调用。
-  load_auto();            //加载自动生成的额外文件。
+  setup_dirs_fds();                         //准备输出目录和文件描述符。
+  read_testcases();                         //从输入目录中读取所有测试用例，然后将它们排入测试队列。在启动时调用。
+  load_auto();                              //加载自动生成的额外文件。
 
-  pivot_inputs();         //在输出目录中为输入测试用例创建硬链接，选择合适的名称并相应地进行调整。
+  pivot_inputs();                           //在输出目录中为输入测试用例创建硬链接，选择合适的名称并相应地进行调整。
 
-  if (extras_dir) load_extras(extras_dir);//从extras目录中读取额外文件，并按大小进行排序。
+  if (extras_dir) load_extras(extras_dir);  //从extras目录中读取额外文件，并按大小进行排序。
 
   if (!timeout_given) find_timeout();
 
-  detect_file_args(argv + optind + 1);    //检测参数中的 @@ 符号。
+  detect_file_args(argv + optind + 1);      //检测参数中的 @@ 符号。
 
-  if (!out_file) setup_stdio_file();      //如果没有使用 -f 参数，则设置模糊数据的输出文件。
+  if (!out_file) setup_stdio_file();        //如果没有使用 -f 参数，则设置模糊数据的输出文件。
 
   check_binary(argv[optind]);
 
-  start_time = get_cur_time();            //获取当前以毫秒为单位的Unix时间
+  start_time = get_cur_time();              //获取当前以毫秒为单位的Unix时间
 
   if (qemu_mode)
     use_argv = get_qemu_argv(argv[0], argv + optind, argc - optind);//为QEMU重写argv参数
   else
     use_argv = argv + optind;
 
-  perform_dry_run(use_argv);
+  perform_dry_run(use_argv);                //针对初始种子的初始化
 
   cull_queue();
 
@@ -9182,10 +9175,10 @@ int main(int argc, char** argv) {
 
   seek_to = find_start_position();
 
-  write_stats_file(0, 0, 0);  //更新状态文件以进行无人值守的监控。
-  save_auto();                //自动保存生成的额外内容
+  write_stats_file(0, 0, 0);                //更新状态文件以进行无人值守的监控。
+  save_auto();                              //自动保存生成的额外内容
 
-  if (stop_soon) goto stop_fuzzing;//如果按下 Ctrl+c，停止fuzzing
+  if (stop_soon) goto stop_fuzzing;         //如果按下 Ctrl+c，停止fuzzing
 
   /* Woop woop woop */
 
