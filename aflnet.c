@@ -1648,16 +1648,21 @@ int net_send(int sockfd, struct timeval timeout, char *mem, unsigned int len) {
 
 
 
-        printf("\n\n----------- send message start ---------------\n");
+
+
+        printf("\n\n-------------------------------------------------------------------------------------------- send message start ---------------\n");
         
-        fprintf(stderr,"\n***********************************\nResponses in details:\n");
+        fprintf(stderr,"\n***********************************\n Request in details:\n");
         int buff;
         for (buff = 0; buff < len - byte_count; buff++) {
           fprintf(stderr,"%c",mem[buff]);
         }
         fprintf(stderr,"\n***********************************\n");
 
-        printf("----------- send message end   ---------------\n");
+        printf("-------------------------------------------------------------------------------------------- send message end   ---------------\n\n\n");
+
+
+
 
 
 
