@@ -8,13 +8,13 @@
 
 unsigned int* (*extract_response_codes)(unsigned char* buf, unsigned int buf_size, unsigned int* state_count_ref) = NULL;
 
-/* Expected arguments:
-1. Path to the test case (e.g., crash-triggering input)
-2. Application protocol (e.g., RTSP, FTP)
-3. Server's network port
-Optional:
-4. First response timeout (ms), default 1
-5. Follow-up responses timeout (us), default 1000
+/* 预期参数：
+  1.测试用例的路径（例如，碰撞触发输入）
+  2.应用程序协议（如RTSP、FTP）
+  3.服务器的网络端口
+可选：
+  4.首次响应超时（ms），默认为1
+  5.后续响应超时（us），默认为1000
 */
 
 int main(int argc, char* argv[])
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  //Wait for the server to initialize
+  //等待服务器初始化
   usleep(server_wait_usecs);
 
   if (response_buf) {
@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
     PFATAL("Cannot create a socket");
   }
 
-  //Set timeout for socket data sending/receiving -- otherwise it causes a big delay
-  //if the server is still alive after processing all the requests
+  //设置套接字数据发送/接收的超时---否则会导致大的延迟
+  //如果服务器在处理完所有请求后仍处于活动状态
   struct timeval timeout;
 
   timeout.tv_sec = 0;
@@ -94,8 +94,8 @@ int main(int argc, char* argv[])
   serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
   if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    //If it cannot connect to the server under test
-    //try it again as the server initial startup time is varied
+    //如果无法连接到测试中的服务器
+    //请在服务器初始启动时间不同时重试
     for (n=0; n < 1000; n++) {
       if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0) break;
       usleep(1000);
@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
     }
   }
 
-  //Send requests one by one
-  //And save all the server responses
+  //逐个发送请求
+  //并保存所有服务器响应
   while(!feof(fp)) {
     if (buf) {ck_free(buf); buf = NULL;}
     if (fread(&size, sizeof(unsigned int), 1, fp) > 0) {
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
   fclose(fp);
   close(sockfd);
 
-  //Extract response codes
+  //提取响应代码
   state_sequence = (*extract_response_codes)(response_buf, response_buf_size, &state_count);
 
   fprintf(stderr,"\n--------------------------------");
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   for (i=0; i < response_buf_size; i++) {
     fprintf(stderr,"%c",response_buf[i]);
   }
-  fprintf(stderr,"\n--------------------------------");
+  fprintf(stderr,"\n--------------------------------\n");
 
   //Free memory
   ck_free(state_sequence);

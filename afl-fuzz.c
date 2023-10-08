@@ -363,8 +363,8 @@ u32 net_port;
 
 char *response_buf = NULL;        //接收服务器返回响应的缓冲区
 int response_buf_size = 0;        //统计整个接收响应的缓冲区长度
-//统计累计响应的buffer的长度，示例说 response_bytes[i]的值为从第0个响应到第i个响应从服务器接收到的响应长度值
-u32 *response_bytes = NULL;
+u32 *response_bytes = NULL;       //统计累计响应的buffer的长度，示例说 response_bytes[i]的值为
+                                  //从第0个响应到第i个响应从服务器接收到的响应长度值
 
 u32 max_annotated_regions = 0;
 u32 target_state_id = 0;        //选择的目标状态
@@ -383,7 +383,7 @@ u32 fuzzed_map_qentries = 0;
 u32 max_seed_region_count = 0;
 u32 local_port;		                            // 用作源的TCP/UDP端口号。 
 
-/* flags */
+/* flags 标志变量*/
 u8 use_net = 0;
 u8 poll_wait = 0;
 u8 server_wait = 0;
@@ -2168,7 +2168,6 @@ static void cull_queue(void) {
 
 
 /* 配置共享内存和`virgin_bits`。这在启动时被调用。 */
-
 EXP_ST void setup_shm(void) {
 
   u8* shm_str;
@@ -2203,7 +2202,6 @@ EXP_ST void setup_shm(void) {
 
 
 /* 加载后处理器（postprocessor），如果可用的话。 */
-
 static void setup_post(void) {
 
   void* dh;
@@ -2229,9 +2227,7 @@ static void setup_post(void) {
 }
 
 
-/*  从输入目录中读取所有测试用例，然后将它们排入测试队列。
-    在启动时调用。 */
-
+/*  从输入目录中读取所有测试用例，然后将它们排入测试队列。在启动时调用。 */
 static void read_testcases(void) {
 
   struct dirent **nl;
@@ -2339,7 +2335,6 @@ static void read_testcases(void) {
 
 
 /* Helper function for load_extras. */
-
 static int compare_extras_len(const void* p1, const void* p2) {
   struct extra_data *e1 = (struct extra_data*)p1,
                     *e2 = (struct extra_data*)p2;
@@ -2356,7 +2351,6 @@ static int compare_extras_use_d(const void* p1, const void* p2) {
 
 
 /* Read extras from a file, sort by size. */
-
 static void load_extras_file(u8* fname, u32* min_len, u32* max_len,
                              u32 dict_level) {
 
@@ -2493,7 +2487,6 @@ static void load_extras_file(u8* fname, u32* min_len, u32* max_len,
 
 
 /* 从extras目录中读取额外文件，并按大小进行排序。 */
-
 static void load_extras(u8* dir) {
 
   DIR* d;
@@ -2592,10 +2585,7 @@ check_and_sort:
 }
 
 
-
-
 /* Helper function for maybe_add_auto() */
-
 static inline u8 memcmp_nocase(u8* m1, u8* m2, u32 len) {
 
   while (len--) if (tolower(*(m1++)) ^ tolower(*(m2++))) return 1;
@@ -2605,7 +2595,6 @@ static inline u8 memcmp_nocase(u8* m1, u8* m2, u32 len) {
 
 
 /* Maybe add automatic extra. */
-
 static void maybe_add_auto(u8* mem, u32 len) {
 
   u32 i;
@@ -2711,7 +2700,6 @@ sort_a_extras:
 
 
 /* 自动保存生成的额外内容。 */
-
 static void save_auto(void) {
 
   u32 i;
@@ -2739,7 +2727,6 @@ static void save_auto(void) {
 
 
 /* 加载自动生成的额外文件。 */
-
 static void load_auto(void) {
 
   u32 i;
@@ -2782,7 +2769,6 @@ static void load_auto(void) {
 
 
 /* Destroy extras. */
-
 static void destroy_extras(void) {
 
   u32 i;
@@ -2800,7 +2786,6 @@ static void destroy_extras(void) {
 }
 
 /* Move process to the network namespace "netns_name" */
-
 static void move_process_to_netns() {
   const char *netns_path_fmt = "/var/run/netns/%s";
   char netns_path[272]; /* 15 for "/var/.." + 256 for netns name + 1 '\0' */
@@ -2826,7 +2811,6 @@ static void move_process_to_netns() {
    In essence, the instrumentation allows us to skip execve(), and just keep
    cloning a stopped child. So, we just execute once, and then send commands
    through a pipe. The other part of this logic is in afl-as.h. */
-
 EXP_ST void init_forkserver(char** argv) {
 
   static struct itimerval it;
@@ -3114,9 +3098,9 @@ EXP_ST void init_forkserver(char** argv) {
 }
 
 
-/* Execute target application, monitoring for timeouts. Return status
-   information. The called program will update trace_bits[]. */
-
+/**
+ * 执行目标应用程序，监视超时情况。返回状态信息。被调用的程序将更新 trace_bits[]。
+*/
 static u8 run_target(char** argv, u32 timeout) {
 
   static struct itimerval it;
@@ -3128,17 +3112,17 @@ static u8 run_target(char** argv, u32 timeout) {
 
   child_timed_out = 0;
 
-  /* After this memset, trace_bits[] are effectively volatile, so we
-     must prevent any earlier operations from venturing into that
-     territory. */
+  /**
+   * 在执行这个 memset 之后，trace_bits[] 实际上变得易变，因此我们必须防止任何早期的操作进入这个领域。
+  */
 
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
 
-  /* If we're running in "dumb" mode, we can't rely on the fork server
-     logic compiled into the target program, so we will just keep calling
-     execve(). There is a bit of code duplication between here and
-     init_forkserver(), but c'est la vie. */
+  /**
+   * 如果我们正在运行 dumb 模式，就不能依赖于编译到目标程序中的分叉服务器逻辑，因此我们将继续调用 execve()。
+   * 这里和 init_forkserver() 之间存在一些代码重复，但这就是生活。
+  */
 
   if (dumb_mode == 1 || no_forkserver) {
 
@@ -3170,13 +3154,14 @@ static u8 run_target(char** argv, u32 timeout) {
 
       setrlimit(RLIMIT_CORE, &r); /* Ignore errors */
 
-      /* Move the process to the different namespace. */
+      /* 将进程移到不同的命名空间。 */
 
       if (netns_name)
         move_process_to_netns();
 
-      /* Isolate the process and configure standard descriptors. If out_file is
-         specified, stdin is /dev/null; otherwise, out_fd is cloned instead. */
+      /**
+       * 隔离进程并配置标准描述符。如果指定了 out_file，则 stdin 为 /dev/null；否则，将克隆 out_fd。
+      */
 
       setsid();
 
@@ -3194,14 +3179,14 @@ static u8 run_target(char** argv, u32 timeout) {
 
       }
 
-      /* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */
+      /* 在 Linux上，使用 O_CLOEXEC 可能会更快。Maybe TODO. */
 
       close(dev_null_fd);
       close(out_dir_fd);
       close(dev_urandom_fd);
       close(fileno(plot_file));
 
-      /* Set sane defaults for ASAN if nothing else specified. */
+      /* 如果未指定其他内容，为ASAN设置合理的默认值。 */
 
       setenv("ASAN_OPTIONS", "abort_on_error=1:"
                              "detect_leaks=0:"
@@ -3214,8 +3199,7 @@ static u8 run_target(char** argv, u32 timeout) {
 
       execv(target_path, argv);
 
-      /* Use a distinctive bitmap value to tell the parent about execv()
-         falling through. */
+      /* 使用一个独特的位图值来告诉父进程 execv() 发生了穿透（未成功执行）。 */
 
       *(u32*)trace_bits = EXEC_FAIL_SIG;
       exit(0);
@@ -3341,7 +3325,6 @@ static u8 run_target(char** argv, u32 timeout) {
 /* Write modified data to file for testing. If out_file is set, the old file
    is unlinked and a new one is created. Otherwise, out_fd is rewound and
    truncated. */
-
 static void write_to_testcase(void* mem, u32 len) {
 
   //AFLNet sends data via network so it does not need this function
@@ -3349,7 +3332,6 @@ static void write_to_testcase(void* mem, u32 len) {
 }
 
 static void show_stats(void);
-
 /* Calibrate a new test case. This is done when processing the input directory
    to warn about flaky or otherwise problematic test cases early on; and when
    new paths are discovered to detect variable behavior and so on. */
@@ -3502,7 +3484,6 @@ abort_calibration:
 
 
 /* Examine map coverage. Called once, for first test case. */
-
 static void check_map_coverage(void) {
 
   u32 i;
@@ -3519,7 +3500,6 @@ static void check_map_coverage(void) {
 
 /*  对所有测试用例进行dry运行，以确认应用程序是否按预期工作。
     这仅针对初始输入进行，并且仅运行一次。 */
-
 static void perform_dry_run(char** argv) {
 
   struct queue_entry* q = queue;
@@ -3739,7 +3719,6 @@ static void perform_dry_run(char** argv) {
 
 
 /* Helper function: link() if possible, copy otherwise. */
-
 static void link_or_copy(u8* old_path, u8* new_path) {
 
   s32 i = link(old_path, new_path);
@@ -3772,7 +3751,6 @@ static void nuke_resume_dir(void);
 
 /*  在输出目录中为输入测试用例创建硬链接，
     选择合适的名称并相应地进行调整。 */
-
 static void pivot_inputs(void) {
 
   struct queue_entry* q = queue;
@@ -3906,7 +3884,6 @@ static u8* describe_op(u8 hnb) {
 
 
 /* Write a message accompanying the crash directory :-) */
-
 static void write_crash_readme(void) {
 
   u8* fn = alloc_printf("%s/replayable-crashes/README.txt", out_dir);
@@ -3955,7 +3932,6 @@ static void write_crash_readme(void) {
 /*  检查在常规模糊测试期间 execve() 的结果是否有趣
     如果是，则保存或将输入测试用例排队以供进一步分析
     如果保存了输入，则返回 1；否则返回 0 */
-
 static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
   u8  *fn = "";
@@ -3965,8 +3941,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
   if (fault == crash_mode) {
 
-    /* Keep only if there are new bits in the map, add to queue for
-       future fuzzing, etc. */
+    /* 仅当映射中有新 bits 时保留，添加到的队列未来的模糊化等 */
 
     if (!(hnb = has_new_bits(virgin_bits))) {
       if (crash_mode) total_crashes++;
@@ -3986,12 +3961,12 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
     u32 full_len = save_kl_messages_to_file(kl_messages, fn, 0, messages_sent);
 
-    /* We use the actual length of all messages (full_len), not the len of the mutated message subsequence (len)*/
+    /* 我们使用所有消息的实际长度（full_len），而不是变异消息子序列的len（len）*/
     add_to_queue(fn, full_len, 0);
 
     if (state_aware_mode) update_state_aware_variables(queue_top, 0);
 
-    /* save the seed to file for replaying */
+    /* 将种子保存到文件中以便 replaying */
     u8 *fn_replay = alloc_printf("%s/replayable-queue/%s", out_dir, basename(queue_top->fname));
     save_kl_messages_to_file(kl_messages, fn_replay, 1, messages_sent);
     ck_free(fn_replay);
@@ -4003,8 +3978,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
     queue_top->exec_cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
 
-    /* Try to calibrate inline; this also calls update_bitmap_score() when
-       successful. */
+    /* 试着在线校准；成功时，它还会调用 updatebitmapscore()。 */
 
     res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
 
@@ -4024,10 +3998,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
     case FAULT_TMOUT:
 
-      /* Timeouts are not very interesting, but we're still obliged to keep
-         a handful of samples. We use the presence of new bits in the
-         hang-specific bitmap as a signal of uniqueness. In "dumb" mode, we
-         just keep everything. */
+      /* 超时不是很有趣，但我们仍然有义务保留一些样品。
+      我们使用挂起特定位图中新比特的存在作为唯一性的信号。在 "dumb" 模式下，我们只保留所有内容。 */
 
       total_tmouts++;
 
@@ -4047,9 +4019,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
       unique_tmouts++;
 
-      /* Before saving, we make sure that it's a genuine hang by re-running
-         the target with a more generous timeout (unless the default timeout
-         is already generous). */
+      /* 在保存之前，我们通过使用更慷慨的超时重新运行目标（除非默认超时已经很慷慨）来确保这是一个真正的挂起。 */
 
       if (exec_tmout < hang_tmout) {
 
@@ -4057,9 +4027,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         write_to_testcase(mem, len);
         new_fault = run_target(argv, hang_tmout);
 
-        /* A corner case that one user reported bumping into: increasing the
-           timeout actually uncovers a crash. Make sure we don't discard it if
-           so. */
+        /* 一位用户报告遇到了一个角落案例：增加超时实际上会发现崩溃。如果是这样的话，请确保我们不会丢弃它。 */
 
         if (!stop_soon && new_fault == FAULT_CRASH) goto keep_as_crash;
 
@@ -4089,9 +4057,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
 keep_as_crash:
 
-      /* This is handled in a manner roughly similar to timeouts,
-         except for slightly different limits and no need to re-run test
-         cases. */
+      /* 这是以大致类似于超时的方式来处理的，除了略有不同的限制和不需要重新运行测试用例。 */
 
       total_crashes++;
 
@@ -4136,8 +4102,7 @@ keep_as_crash:
 
   }
 
-  /* If we're here, we apparently want to save the crash or hang
-     test case, too. */
+  /* 如果我们在这里，我们显然也想保存崩溃或挂起测试用例。 */
 
   save_kl_messages_to_file(kl_messages, fn, 1, messages_sent);
 
@@ -4154,7 +4119,6 @@ keep_as_crash:
 
 
 // 通过读取存储状态的文件 fuzzer_stats，获取"cur_path"字段的值作为继续执行的起始位置
-
 static u32 find_start_position(void) {
 
   static u8 tmp[4096]; 
@@ -4189,7 +4153,6 @@ static u32 find_start_position(void) {
 /*  相同的情况，但适用于超时时间。
     这个想法是，在没有给出-t参数的情况下恢复会话时，我们不希望一次又一次地
     自动调整超时时间，以防止由于随机波动而导致超时时间不断增加。 */
-
 static void find_timeout(void) {
 
   static u8 tmp[4096]; /* 应该足够满足任何人的需求。 */
@@ -4224,7 +4187,6 @@ static void find_timeout(void) {
 
 
 /* 更新状态文件以进行无人值守的监控。 */
-
 static void write_stats_file(double bitmap_cvg, double stability, double eps) {
 
   static double last_bcvg, last_stab, last_eps;
@@ -4323,7 +4285,6 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
 
 
 /* Update the plot file if there is a reason to. */
-
 static void maybe_update_plot_file(double bitmap_cvg, double eps) {
 
   static u32 prev_qp, prev_pf, prev_pnf, prev_ce, prev_md;
@@ -4363,7 +4324,6 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
 
 /* A helper function for maybe_delete_out_dir(), deleting all prefixed
    files in a directory. */
-
 static u8 delete_files(u8* path, u8* prefix) {
 
   DIR* d;
@@ -4394,7 +4354,6 @@ static u8 delete_files(u8* path, u8* prefix) {
 
 
 /* Get the number of runnable processes, with some simple smoothing. */
-
 static double get_runnable_processes(void) {
 
   static double res;
@@ -4447,7 +4406,6 @@ static double get_runnable_processes(void) {
 
 
 /* Delete the temporary directory used for in-place session resume. */
-
 static void nuke_resume_dir(void) {
 
   u8* fn;
@@ -4487,7 +4445,6 @@ dir_cleanup_failed:
 
 /* Delete fuzzer output directory if we recognize it as ours, if the fuzzer
    is not currently running, and if the last run time isn't too great. */
-
 static void maybe_delete_out_dir(void) {
 
   FILE* f;
@@ -7383,7 +7340,7 @@ havoc_stage:
             break;
           }
 
-        /* Insert a random region from a random seed to the end of the current region */
+        /* 从随机种子到当前 region 的末尾插入一个随机 region */
         case 19: {
             u32 src_region_len = 0;
             u8* src_region = choose_source_region(&src_region_len);

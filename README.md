@@ -1,16 +1,16 @@
-# AFLNet: A Greybox Fuzzer for Network Protocols
-AFLNet is a greybox fuzzer for protocol implementations. Unlike existing protocol fuzzers, it takes a mutational approach and uses state-feedback, in addition to code-coverage feedback, to guide the fuzzing process. AFLNet is seeded with a corpus of recorded message exchanges between the server and an actual client. No protocol specification or message grammars are required. It acts as a client and replays variations of the original sequence of messages sent to the server and retains those variations that were effective at increasing the coverage of the code or state space. To identify the server states that are exercised by a message sequence, AFLNet uses the server’s response codes. From this feedback, AFLNet identifies progressive regions in the state space, and systematically steers towards such regions.
+# AFLNet:一种适用于网络协议的灰盒模糊器
+AFLNet 是一个用于协议实现的灰盒模糊器。与现有的协议模糊器不同，它采用了一种变异方法，除了使用代码覆盖率反馈外，还使用状态反馈来指导模糊过程。AFLNet 以服务器和实际客户端之间记录的消息交换语料库为种子。不需要任何协议规范或消息语法。它充当客户端，重放发送到服务器的原始消息序列的变体，并保留那些在增加代码或状态空间覆盖率方面有效的变体。为了识别由消息序列执行的服务器状态，AFLNet 使用服务器的响应代码。从这个反馈中，AFLNet 识别了状态空间中的渐进区域，并系统地转向这些区域。
 
-# Licences
+# 许可证
 
-AFLNet is licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+AFLNet 是根据 [Apache许可证2.0版](https://www.apache.org/licenses/LICENSE-2.0)授权的。
 
-AFLNet is an extension of [American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/) written and maintained by Michał Zalewski <<lcamtuf@google.com>>. For details on American Fuzzy Lop, we refer to [README-AFL.md](README-AFL.md).
+AFLNet 是 MichałZalewski 编写和维护的 [AFL](http://lcamtuf.coredump.cx/afl/) 的扩展<<lcamtuf@google.com>>。 有关 AFL 的详细信息，请参阅 [README-AFL.md](README-AFL.md)。
 
 * **AFL**: [Copyright](https://github.com/aflsmart/aflsmart/blob/master/docs/README) 2013, 2014, 2015, 2016 Google Inc. All rights reserved. Released under terms and conditions of [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
-# Citing AFLNet
-AFLNet has been accepted for publication as a Testing Tool paper at the IEEE International Conference on Software Testing, Verification and Validation (ICST) 2020. 
+# 引用 AFLNet
+AFLNet 已被接受作为测试工具论文在 2020 年 IEEE 国际软件测试、验证和确认会议(ICST)上发表。
 
 ```
 @inproceedings{AFLNet,
@@ -20,39 +20,39 @@ booktitle={Proceedings of the 13rd IEEE International Conference on Software Tes
 year={2020},}
 ```
 
-# Installation (Tested on Ubuntu 18.04 & 16.04 64-bit)
+# 安装(在 Ubuntu 18.04 和 16.04 64位上测试)
 
-## Prerequisites
+## 准备
 
 ```bash
-# Install clang (as required by AFL/AFLNet to enable llvm_mode)
+# 安装 clang(根据 AFL/AFLNet 的要求启用 llvm_mode)
 sudo apt-get install clang
-# Install graphviz development
+# 安装 graphviz-dev
 sudo apt-get install graphviz-dev libcap-dev
 ```
 
 ## AFLNet
 
-Download AFLNet and compile it. We have tested AFLNet on Ubuntu 18.04 and Ubuntu 16.04 64-bit and it would also work on all environments that support the vanilla AFL and [graphviz](https://graphviz.org).
+下载 AFLNet 并编译它。我们已经在 Ubuntu 18.04 和 Ubuntu 16.04 64位上测试了 AFLNet，它也可以在所有支持 AFL 和 [graphviz](https://graphviz.org)的环境中工作。
 
 ```bash
-# First, clone this AFLNet repository to a folder named aflnet
+# 首先，将这个 AFLNet 存储库克隆到一个名为 AFLNet 的文件夹中
 git clone <links to the repository> aflnet
-# Then move to the source code folder
+# 然后移动到源代码文件夹
 cd aflnet
 make clean all
 cd llvm_mode
-# The following make command may not work if llvm-config cannot be found
-# To fix this issue, just set the LLVM_CONFIG env. variable to the specific llvm-config version on your machine
-# On Ubuntu 18.04, it could be llvm-config-6.0 if you have installed clang using apt-get
+# 如果找不到 llvm-config，则以下 make 命令可能不起作用
+# 要解决此问题，只需设置 LLVM_CONFIG 环境。变量到您机器上的特定 llvm 配置版本
+# 在 Ubuntu 18.04上，如果你使用 apt-get 安装了 clang，它可能是 llvm-config-6.0
 make
-# Move to AFLNet's parent folder
+# 移动到 AFLNet 的父文件夹
 cd ../..
 export AFLNET=$(pwd)/aflnet
 export WORKDIR=$(pwd)
 ```
 
-## Setup PATH environment variables
+## 设置 PATH 环境变量
 
 ```bash
 export PATH=$PATH:$AFLNET
@@ -61,80 +61,80 @@ export AFL_PATH=$AFLNET
 
 # Usage
 
-AFLNet adds the following options to AFL. Run ```afl-fuzz --help``` to see all options. Please also see the FAQs section for common questions about these AFLNet's options.
+AFLNet 为 AFL 添加了以下选项。运行 ```afl-fuzz --help```查看所有选项。有关这些 AFLNet 选项的常见问题，请参阅常见问题解答部分。
 
-- ***-N netinfo***: server information (e.g., tcp://127.0.0.1/8554)
+- ***-N netinfo***: 服务器信息(例如，tcp://127.0.0.1/8554)
 
-- ***-P protocol***: application protocol to be tested (e.g., RTSP, FTP, DTLS12, DNS, DICOM, SMTP, SSH, TLS, DAAP-HTTP, SIP)
+- ***-P protocol***: 要测试的应用程序协议(例如，RTSP、FTP、DTLS12、DNS、DICOM、SMTP、SSH、TLS、DAP-HTTP、SIP)
 
-- ***-D usec***: (optional) waiting time (in microseconds) for the server to complete its initialization 
+- ***-D usec***: (可选)服务器完成初始化的等待时间(以微秒为单位)
 
-- ***-e netnsname***: (optional) network namespace name to run the server in
+- ***-e netnsname***: (可选)运行服务器的网络命名空间名称
 
-- ***-K*** : (optional) send SIGTERM signal to gracefully terminate the server after consuming all request messages
+- ***-K*** : (可选)在消耗完所有请求消息后，发送 SIGTERM 信号以正常终止服务器
 
-- ***-E*** : (optional) enable state aware mode
+- ***-E*** : (可选)启用状态感知模式
 
-- ***-R*** : (optional) enable region-level mutation operators
+- ***-R*** : (可选)启用区域级突变运算符
 
-- ***-F*** : (optional) enable false negative reduction mode
+- ***-F*** : (可选)启用假阴性还原模式
 
-- ***-c script*** : (optional) name or full path to a script for server cleanup
+- ***-c script*** : (可选)用于服务器清理的脚本的名称或完整路径
 
-- ***-q algo***: (optional) state selection algorithm (e.g., 1. RANDOM_SELECTION, 2. ROUND_ROBIN, 3. FAVOR)
+- ***-q algo***: (可选)状态选择算法（例如:1. RANDOM_SELECTION，2. ROUND_ROBIN，3. FAVOR)
 
-- ***-s algo***: (optional) seed selection algorithm (e.g., 1. RANDOM_SELECTION, 2. ROUND_ROBIN, 3. FAVOR)
+- ***-s algo***: (可选)种子选择算法（例如:1. RANDOM_SELECTION，2.ROUND_ROBIN，3. FAVOR)
 
 
-Example command: 
+命令示例： 
 ```bash
 afl-fuzz -d -i in -o out -N <server info> -x <dictionary file> -P <protocol> -D 10000 -q 3 -s 3 -E -K -R <executable binary and its arguments (e.g., port number)>
 ```
 
-# Tutorial - Fuzzing Live555 media streaming server
+# 教程-模糊测试 Live555 媒体流服务器
 
-[Live555 Streaming Media](http://live555.com) is a C++ library for multimedia streaming. The library supports open protocols such as RTP/RTCP and RTSP for streaming. It is used internally by widely-used media players such as [VLC](https://videolan.org) and [MPlayer](http://mplayerhq.hu) and some security cameras & network video recorders (e.g., [DLink D-View Cameras](http://files.dlink.com.au/products/D-ViewCam/REV_A/Manuals/Manual_v3.51/D-ViewCam_DCS-100_B1_Manual_v3.51(WW).pdf), [Senstar Symphony](http://cdn.aimetis.com/public/Library/Senstar%20Symphony%20User%20Guide%20en-US.pdf), [WISENET Video Recorder](https://www.eos.com.au/pub/media/doc/wisenet/Manuals_QRN-410S,QRN-810S,QRN-1610S_180802_EN.pdf)). In this example, we show how AFLNet can be used to fuzz Live555 and discover bugs in its RTSP server reference implementation (testOnDemandRTSPServer). Similar steps would be followed to fuzz servers implementing other protocols (e.g., FTP, SMTP, SSH).
+[Live555](http://live555.com)流媒体是一个用于多媒体流媒体的 C++ 库。该库支持诸如 RTP/RTCP 和 RTSP 之类的用于流传输的开放协议。它被广泛使用的媒体播放器(如 [VLC](https://videolan.org)和 [MPlayer](http://mplayerhq.hu))以及一些安全摄像头和网络录像机（如[DLink D-View Cameras](http://files.dlink.com.au/products/D-ViewCam/REV_A/Manuals/Manual_v3.51/D-ViewCam_DCS-100_B1_Manual_v3.51(WW).pdf), [Senstar Symphony](http://cdn.aimetis.com/public/Library/Senstar%20Symphony%20User%20Guide%20en-US.pdf), [WISENET Video Recorder](https://www.eos.com.au/pub/media/doc/wisenet/Manuals_QRN-410S,QRN-810S,QRN-1610S_180802_EN.pdf))内部使用。在这个例子中，我们展示了如何使用 AFLNet 模糊 Live555 并发现其 RTSP 服务器参考实现(testOnDemandRTSPServer)中的错误。将遵循类似的步骤来模糊实现其他协议(例如，FTP、SMTP、SSH)的服务器。
 
-If you want to run some experiments quickly, please take a look at [ProFuzzBench](https://github.com/profuzzbench/profuzzbench). ProFuzzBench includes a suite of representative open-source network servers for popular protocols (e.g., TLS, SSH, SMTP, FTP, SIP), and tools to automate experimentation.
+如果你想快速运行一些实验，请查看 [ProFuzzBench](https://github.com/profuzzbench/profuzzbench)。ProFuzzBench 包括一套用于流行协议(如TLS、SSH、SMTP、FTP、SIP)的代表性开源网络服务器，以及自动化实验的工具。
 
-## Step-0. Server and client compilation & setup
+## Step-0. 服务器和客户端编译和设置
 
-The newest source code of Live555 can be downloaded as a tarball at [Live555 public page](http://live555.com/liveMedia/public/). There is also [a mirror of the library](https://github.com/rgaufman/live555) on GitHub. In this example, we choose to fuzz an [old version of Live555](https://github.com/rgaufman/live555/commit/ceeb4f462709695b145852de309d8cd25e2dca01) which was commited to the repository on August 28th, 2018. While fuzzing this specific version of Live555, AFLNet exposed four vulnerabilites in Live555, two of which were zero-day. To compile and setup Live555, please use the following commands.
+Live555 的最新源代码可以作为 tarball 在 [Live555 公共页面](http://live555.com/liveMedia/public/)上下载。GitHub 上还有一个库的[镜像](https://github.com/rgaufman/live555)。在这个例子中，我们选择模糊 [Live555 的旧版本](https://github.com/rgaufman/live555/commit/ceeb4f462709695b145852de309d8cd25e2dca01)，该版本于2018年8月28日提交到存储库。在模糊 Live555 的这个特定版本时，AFLNet 暴露了 Live555 中的四个漏洞，其中两个是零日漏洞。要编译和设置 Live555，请使用以下命令。
 
 ```bash
 cd $WORKDIR
-# Clone live555 repository
+# 克隆 live555 存储仓库
 git clone https://github.com/rgaufman/live555.git
-# Move to the folder
+# 进入 live555 文件夹下
 cd live555
-# Checkout the buggy version of Live555
+# 切换到 live555 的异常版本
 git checkout ceeb4f4
-# Apply a patch. See the detailed explanation for the patch below
+# 应用补丁。请参阅以下补丁的详细说明
 patch -p1 < $AFLNET/tutorials/live555/ceeb4f4.patch
-# Generate Makefile
+# 生成 Makefile
 ./genMakefiles linux
-# Compile the source
+# 编译源代码
 make clean all
 ```
 
-As you can see from the commands, we apply a patch to make the server effectively fuzzable. In addition to the changes for generating a Makefile which uses afl-clang-fast++ to do the coverage feedback-enabled instrumentation, we make a small change to disable random session ID generation in Live555. In the unmodified version of Live555, it generates a session ID for each connection and the session ID should be included in subsequent requests sent from the connected client. Otherwise, the requests are quickly rejected by the server and this leads to undeterministic paths while fuzzing. Specifically, the same message sequence could exercise different server paths because the session ID is changing. We handle this specific issue by modifing Live555 in such a way that it always generates the same session ID.
+正如您从命令中看到的，我们应用了一个补丁来使服务器有效地模糊化。除了对生成 Makefile 的更改外，我们还对 Live555 中的随机会话 ID 生成进行了小更改，该 Makefile 使用 afl-clang-fast++ 来执行启用覆盖反馈的检测。在 Live555 的未修改版本中，它为每个连接生成一个会话 ID，该会话 ID 应包含在从连接的客户端发送的后续请求中。否则，请求会很快被服务器拒绝，这会导致模糊时路径无法确定。具体来说，由于会话 ID 正在更改，相同的消息序列可能会使用不同的服务器路径。我们通过修改 Live555 来处理这个特定问题，使其始终生成相同的会话 ID。
 
-Once Live555 source code has been successfully compiled, we should see the server under test (testOnDemandRTSPServer) and the sample RTSP client (testRTSPClient) placed inside the testProgs folder. We can test the server by running the following commands.
+一旦 Live555 源代码成功编译，我们应该会看到测试中的服务器(testOnDemandRTSPServer)和位于 testProgs 文件夹中的示例 RTSP 客户端(testRTSPClient)。我们可以通过运行以下命令来测试服务器。
 
 ```bash
-# Move to the folder keeping the RTSP server and client
+# 移动到保存 RTSP 服务器和客户端的文件夹
 cd $WORKDIR/live555/testProgs
-# Copy sample media source files to the server folder
+# 将示例媒体源文件复制到服务器文件夹
 cp $AFLNET/tutorials/live555/sample_media_sources/*.* ./
-# Run the RTSP server on port 8554
+# 在端口 8554 上运行 RTSP 服务器
 ./testOnDemandRTSPServer 8554
-# Run the sample client on another screen/terminal
+# 在另一个屏幕/终端上运行示例客户端
 ./testRTSPClient rtsp://127.0.0.1:8554/wavAudioTest
 ```
 
-We should see the outputs from the sample client showing that it successfully connects to the server, sends requests and receives responses including streaming data from the server.
+我们应该看到来自示例客户端的输出，显示它成功地连接到服务器，发送请求并接收响应，包括来自服务器的流数据。
 
-## Step-1. Prepare message sequences as seed inputs
+## Step-1. 准备消息序列作为种子输入
 
 AFLNet takes message sequences as seed inputs so we first capture some sample usage scenarios between the sample client (testRTSPClient) and the server under test (SUT). The following steps show how we prepare a seed input for AFLNet based on a usage scenario in which the server streams an audio file in WAV format to the client upon requests. The same steps can be followed to prepare other seed inputs for other media source files (e.g., WebM, MP3).
 
