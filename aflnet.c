@@ -1641,8 +1641,13 @@ int net_send(int sockfd, struct timeval timeout, char *mem, unsigned int len) {
   int rv = poll(pfd, 1, 1);
 
   setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout));
+
+
   if (rv > 0) {
     if (pfd[0].revents & POLLOUT) {
+
+      printf("\n\n-------------------------------------------------------------------------------------------- send message start ---------------\n");
+      fprintf(stderr,"\n***********************************\n Request in details:\n");
       while (byte_count < len) {
         usleep(10);
 
@@ -1650,19 +1655,11 @@ int net_send(int sockfd, struct timeval timeout, char *mem, unsigned int len) {
 
 
 
-        printf("\n\n-------------------------------------------------------------------------------------------- send message start ---------------\n");
-        
-        fprintf(stderr,"\n***********************************\n Request in details:\n");
         int buff;
         for (buff = 0; buff < len - byte_count; buff++) {
           fprintf(stderr,"%c",mem[buff]);
         }
-        fprintf(stderr,"\n***********************************\n");
-
-        printf("-------------------------------------------------------------------------------------------- send message end   ---------------\n\n\n");
-
-
-
+        
 
 
 
@@ -1671,6 +1668,9 @@ int net_send(int sockfd, struct timeval timeout, char *mem, unsigned int len) {
         if (n == -1) return -1;
         byte_count += n;
       }
+      fprintf(stderr,"\n***********************************\n");
+      printf("-------------------------------------------------------------------------------------------- send message end   ---------------\n\n\n");
+
     }
   }
   return byte_count;
